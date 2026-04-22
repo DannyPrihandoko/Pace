@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 
 // State Provider to hold SharedPreferences
 // This matches the structured approach used in fina
@@ -13,6 +14,9 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize notification service
+  await NotificationService().init();
   
   // Initialize shared preferences for theme settings or future settings
   final sharedPrefs = await SharedPreferences.getInstance();
@@ -26,6 +30,7 @@ void main() async {
     ),
   );
 }
+
 
 class PaceApp extends ConsumerWidget {
   const PaceApp({super.key});

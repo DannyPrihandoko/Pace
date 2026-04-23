@@ -74,7 +74,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
         title: Text(widget.activity == null ? 'Tambah Kegiatan' : 'Edit Kegiatan'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textDarkBlue,
+        foregroundColor: AppColors.textDark,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -92,7 +92,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.cardPaleBlue,
+                  color: AppColors.white.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderColor),
                 ),
@@ -102,11 +102,11 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
                     Text(
                       _selectedTime.format(context),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.textDarkBlue,
+                            color: AppColors.textDark,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const Icon(Icons.access_time_rounded, color: AppColors.textDarkBlue),
+                    const Icon(Icons.access_time_rounded, color: AppColors.textDark),
                   ],
                 ),
               ),
@@ -119,7 +119,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
                 Switch(
                   value: _isAlarmEnabled,
                   onChanged: (val) => setState(() => _isAlarmEnabled = val),
-                  activeColor: AppColors.ctaAqua,
+                  activeColor: AppColors.primary,
                 ),
               ],
             ),
@@ -130,8 +130,8 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
               child: ElevatedButton(
                 onPressed: _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.ctaAqua,
-                  foregroundColor: AppColors.textDarkBlue,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white, // Improved contrast on Indigo background
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -171,7 +171,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
           maxLines: maxLines,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.cardPaleBlue.withOpacity(0.3),
+            fillColor: AppColors.white.withOpacity(0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: AppColors.borderColor),
@@ -182,7 +182,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.ctaAqua, width: 2),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
         ),

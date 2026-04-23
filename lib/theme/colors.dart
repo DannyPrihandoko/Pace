@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color background = Color(0xFFFDFDFD); // Premium Off-White
-  static const Color cardPaleBlue = Color(0xFFF1F5FB); // Lighter blue for cards
-  static const Color ctaAqua = Color(0xFF00BFA5); // Slightly darker aqua for better contrast
-  static const Color textDarkBlue = Color(0xFF0D1B2A); // Darker blue for text
-  static const Color textMuted = Color(0xFF62727B); // Better contrast for muted text
-  static const Color borderColor = Color(0xFFE0E6ED); // Softer border
+  // Primary Palette - Brighter & Colorful
+  static const Color background = Color(0xFFF8FAFF); // Soft Cloud Blue
+  static const Color primary = Color(0xFF6366F1); // Indigo Modern
+  static const Color secondary = Color(0xFF10B981); // Emerald Green
+  static const Color accent = Color(0xFFF59E0B); // Amber
+  
+  // Vibrant Activity Colors
+  static const Color color1 = Color(0xFFFF6B6B); // Coral Pink
+  static const Color color2 = Color(0xFF4ECDC4); // Turquoise
+  static const Color color3 = Color(0xFF45B7D1); // Sky Blue
+  static const Color color4 = Color(0xFF96CEB4); // Sage
+  static const Color color5 = Color(0xFFFFEEAD); // Cream Yellow
+  static const Color color6 = Color(0xFFD4A5A5); // Rose
+  static const Color color7 = Color(0xFF9B59B6); // Amethyst
+  
+  static const Color textDark = Color(0xFF1E293B); // Slate 800
+  static const Color textMuted = Color(0xFF64748B); // Slate 500
   static const Color white = Color(0xFFFFFFFF);
-  static const Color glassWhite = Color(0x1AFFFFFF);
-  static const Color glassBorder = Color(0x33FFFFFF);
+  static const Color borderColor = Color(0xFFE2E8F0);
 
-  // Dark Mode Palette
-  static const Color darkBackground = Color(0xFF0A0E12); // Deep Obsidian
-  static const Color darkCard = Color(0xFF151D26); // Dark Navy Card
-  static const Color darkBorder = Color(0xFF242F3D); // Subtle Dark Border
-  static const Color darkTextPrimary = Color(0xFFFDFDFD); // Off-White Text
-  static const Color darkTextMuted = Color(0xFF8B9BA8); // Muted Blue-Grey
+  // Dark Mode Palette - Keep it colorful
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkCard = Color(0xFF1E293B);
+  static const Color darkTextPrimary = Color(0xFFF8FAFF);
 
-  // Semantic mappings
-  static const Color primary = textDarkBlue;
-  static const Color secondary = ctaAqua;
-  static const Color surface = white;
-  static const Color error = Color(0xFFD32F2F);
+  static const List<Color> activityColors = [
+    color1, color2, color3, color4, color5, color6, color7
+  ];
 
-  // Premium Gradients
-  static const List<Color> mainGradient = [Color(0xFF0D1B2A), Color(0xFF1B263B)];
-  static const List<Color> accentGradient = [Color(0xFF00E5FF), Color(0xFF00BFA5)];
-  static const List<Color> glassGradient = [Color(0x33FFFFFF), Color(0x0DFFFFFF)];
+  static const List<Color> mainGradient = [Color(0xFF6366F1), Color(0xFFA855F7)]; // Indigo to Purple
+  static const List<Color> accentGradient = [Color(0xFF10B981), Color(0xFF3B82F6)]; // Green to Blue
 }

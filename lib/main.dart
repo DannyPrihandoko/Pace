@@ -15,11 +15,23 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize notification service
-  await NotificationService().init();
+  // Initialize notification service with timeout to prevent hanging
+  try {
+    await NotificationService().init().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    debugPrint('Notification initialization failed or timed out: $e');
+  }
   
-  // Initialize shared preferences for theme settings or future settings
-  final sharedPrefs = await SharedPreferences.getInstance();
+  // Initialize shared preferences
+  final SharedPreferences sharedPrefs;
+  try {
+    sharedPrefs = await SharedPreferences.getInstance();
+  } catch (e) {
+    debugPrint('SharedPreferences initialization failed: $e');
+    // We need a fallback if it fails, but getInstance rarely fails forever
+    // If it does, we might want to show an error or use a mock
+    return; // Or continue with a partial app
+  }
 
   runApp(
     ProviderScope(

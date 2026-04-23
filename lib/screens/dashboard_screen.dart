@@ -76,8 +76,8 @@ class DashboardScreen extends ConsumerWidget {
             MaterialPageRoute(builder: (context) => const EditActivityScreen()),
           );
         },
-        backgroundColor: AppColors.ctaAqua,
-        child: const Icon(Icons.add, color: AppColors.textDarkBlue),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: AppColors.white),
       ),
     );
   }
@@ -94,7 +94,7 @@ class DashboardScreen extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textDarkBlue.withOpacity(0.1),
+            color: AppColors.textDark.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -117,7 +117,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   child: const Icon(
                     Icons.alarm_on_rounded,
-                    color: AppColors.ctaAqua,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -128,15 +128,16 @@ class DashboardScreen extends ConsumerWidget {
                       Text(
                         'Kegiatan Mendatang',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppColors.white.withOpacity(0.8),
+                              color: AppColors.white, // Pure white for max contrast
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${upcoming.title} (${upcoming.time.format(context)})',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.bold,
+                              color: AppColors.white, // Pure white for max contrast
+                              fontWeight: FontWeight.w900,
                             ),
                       ),
                     ],
@@ -177,12 +178,14 @@ class DashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.cardPaleBlue,
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.activityColors[activity.id! % AppColors.activityColors.length].withOpacity(0.15) 
+                    : AppColors.activityColors[activity.id! % AppColors.activityColors.length].withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.event_note_rounded,
-                color: AppColors.textDarkBlue,
+                color: AppColors.activityColors[activity.id! % AppColors.activityColors.length],
               ),
             ),
             const SizedBox(width: 16),
@@ -210,7 +213,7 @@ class DashboardScreen extends ConsumerWidget {
               onChanged: (val) {
                 ref.read(activityProvider.notifier).toggleAlarm(activity);
               },
-              activeColor: AppColors.ctaAqua,
+              activeColor: AppColors.primary,
             ),
           ],
         ),

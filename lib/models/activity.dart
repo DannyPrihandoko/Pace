@@ -17,6 +17,20 @@ class Activity {
     required this.date,
   });
 
+  DateTime get startTime {
+    final dateParts = date.split('-');
+    if (dateParts.length == 3) {
+      final year = int.parse(dateParts[0]);
+      final month = int.parse(dateParts[1]);
+      final day = int.parse(dateParts[2]);
+      return DateTime(year, month, day, time.hour, time.minute);
+    }
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, time.hour, time.minute);
+  }
+
+  DateTime get endTime => startTime.add(const Duration(hours: 1));
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -57,4 +71,24 @@ class Activity {
       date: date ?? this.date,
     );
   }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Activity &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          description == other.description &&
+          time == other.time &&
+          isAlarmEnabled == other.isAlarmEnabled &&
+          date == other.date;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      description.hashCode ^
+      time.hashCode ^
+      isAlarmEnabled.hashCode ^
+      date.hashCode;
 }

@@ -6,6 +6,7 @@ import '../models/activity.dart';
 import '../providers/activity_provider.dart';
 import '../theme/colors.dart';
 import 'edit_activity_screen.dart';
+import '../models/activity_category.dart';
 
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
@@ -130,8 +131,7 @@ class ActivityDataSource extends CalendarDataSource {
       return AppColors.textMuted.withOpacity(0.3);
     }
     
-    final colorIndex = (activity.id ?? index) % AppColors.activityColors.length;
-    return AppColors.activityColors[colorIndex];
+    return ActivityCategory.fromName(activity.category).color;
   }
 
   @override

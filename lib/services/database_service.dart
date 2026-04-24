@@ -21,7 +21,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -33,6 +33,9 @@ class DatabaseService {
     }
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE activities ADD COLUMN recurrenceRule TEXT');
+    }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE activities ADD COLUMN category TEXT DEFAULT "Umum"');
     }
   }
 
@@ -46,7 +49,8 @@ class DatabaseService {
         minute INTEGER NOT NULL,
         isAlarmEnabled INTEGER NOT NULL,
         date TEXT NOT NULL,
-        recurrenceRule TEXT
+        recurrenceRule TEXT,
+        category TEXT DEFAULT "Umum"
       )
     ''');
     await _createUsersTable(db);

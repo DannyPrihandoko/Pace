@@ -4,6 +4,7 @@ import '../models/activity.dart';
 import '../providers/activity_provider.dart';
 import '../theme/colors.dart';
 import 'package:intl/intl.dart';
+import '../models/activity_category.dart';
 
 class EditActivityScreen extends ConsumerStatefulWidget {
   final Activity? activity;
@@ -22,6 +23,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
 
   late String _selectedDate;
   String? _recurrenceRule;
+  late String _selectedCategory;
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
     _isAlarmEnabled = widget.activity?.isAlarmEnabled ?? true;
     _selectedDate = widget.activity?.date ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
     _recurrenceRule = widget.activity?.recurrenceRule;
+    _selectedCategory = widget.activity?.category ?? 'Umum';
   }
 
   String _getRecurrenceLabel() {
@@ -190,6 +193,7 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
       isAlarmEnabled: _isAlarmEnabled,
       date: _selectedDate,
       recurrenceRule: _recurrenceRule,
+      category: _selectedCategory,
     );
 
     // Conflict Check
@@ -332,6 +336,8 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
               hint: 'Contoh: Olahraga Pagi',
               helperText: 'Tuliskan nama singkat kegiatan Anda.',
             ),
+            const SizedBox(height: 24),
+            _buildCategorySelector(),
             const SizedBox(height: 24),
             _buildTextField(
               'Deskripsi', 
@@ -539,6 +545,75 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Kategori', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: ActivityCategory.categories.length,
+            itemBuilder: (context, index) {
+              final cat = ActivityCategory.categories[index];
+              final isSelected = _selectedCategory == cat.name;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedCategory = cat.name),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 80,
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? cat.color : Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected 
+                          ? cat.color 
+                          : (Theme.of(context).brightness == Brightness.dark 
+                              ? AppColors.darkBorderColor 
+                              : AppColors.borderColor.withOpacity(0.5)),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      if (isSelected)
+                        BoxShadow(
+                          color: cat.color.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        cat.icon, 
+                        color: isSelected ? Colors.white : cat.color,
+                        size: 28,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        cat.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

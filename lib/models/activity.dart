@@ -8,6 +8,7 @@ class Activity {
   final bool isAlarmEnabled;
   final String date; // Format: YYYY-MM-DD
   final String? recurrenceRule;
+  final String category;
 
   Activity({
     this.id,
@@ -17,6 +18,7 @@ class Activity {
     this.isAlarmEnabled = true,
     required this.date,
     this.recurrenceRule,
+    this.category = 'Umum',
   });
 
   DateTime get startTime {
@@ -43,6 +45,7 @@ class Activity {
       'isAlarmEnabled': isAlarmEnabled ? 1 : 0,
       'date': date,
       'recurrenceRule': recurrenceRule,
+      'category': category,
     };
   }
 
@@ -55,6 +58,7 @@ class Activity {
       isAlarmEnabled: map['isAlarmEnabled'] == 1,
       date: map['date'],
       recurrenceRule: map['recurrenceRule'] as String?,
+      category: map['category'] ?? 'Umum',
     );
   }
 
@@ -66,6 +70,7 @@ class Activity {
     bool? isAlarmEnabled,
     String? date,
     String? recurrenceRule,
+    String? category,
   }) {
     return Activity(
       id: id ?? this.id,
@@ -75,6 +80,7 @@ class Activity {
       isAlarmEnabled: isAlarmEnabled ?? this.isAlarmEnabled,
       date: date ?? this.date,
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+      category: category ?? this.category,
     );
   }
 
@@ -117,7 +123,8 @@ class Activity {
           time == other.time &&
           isAlarmEnabled == other.isAlarmEnabled &&
           date == other.date &&
-          recurrenceRule == other.recurrenceRule;
+          recurrenceRule == other.recurrenceRule &&
+          category == other.category;
 
   @override
   int get hashCode =>
@@ -127,5 +134,6 @@ class Activity {
       time.hashCode ^
       isAlarmEnabled.hashCode ^
       date.hashCode ^
-      recurrenceRule.hashCode;
+      recurrenceRule.hashCode ^
+      category.hashCode;
 }

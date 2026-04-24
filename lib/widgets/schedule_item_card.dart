@@ -4,6 +4,8 @@ import '../models/activity.dart';
 import '../providers/activity_provider.dart';
 import '../theme/colors.dart';
 import '../screens/edit_activity_screen.dart';
+import '../models/activity_category.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ScheduleItemCard extends ConsumerWidget {
   final Activity activity;
@@ -12,7 +14,8 @@ class ScheduleItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = AppColors.activityColors[activity.id! % AppColors.activityColors.length];
+    final cat = ActivityCategory.fromName(activity.category);
+    final color = cat.color;
 
     return IntrinsicHeight(
       child: Row(
@@ -158,10 +161,26 @@ class ScheduleItemCard extends ConsumerWidget {
                                       fontSize: 16,
                                       letterSpacing: -0.3,
                                     ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (activity.description.isNotEmpty)
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(cat.icon, size: 12, color: color),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      cat.name,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: color,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (activity.description.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(

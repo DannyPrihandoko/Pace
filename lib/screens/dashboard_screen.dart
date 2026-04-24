@@ -7,6 +7,7 @@ import '../providers/activity_provider.dart';
 import '../models/activity.dart';
 import '../widgets/schedule_item_card.dart';
 import 'edit_activity_screen.dart';
+import '../models/activity_category.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -159,66 +160,82 @@ class DashboardScreen extends ConsumerWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(24),
-              child: upcoming == null
-                  ? Center(
-                      child: Text(
-                        'Siap untuk hari ini?',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.white.withOpacity(0.9),
-                        ),
-                      ),
                     )
-                  : Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                  : (() {
+                      final cat = ActivityCategory.fromName(upcoming.category);
+                      return Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              cat.icon,
+                              color: AppColors.white,
+                              size: 32,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.alarm_on_rounded,
-                            color: AppColors.white,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'KEGIATAN MENDATANG',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: AppColors.white.withOpacity(0.7),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11,
-                                  letterSpacing: 1.5,
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'MENDATANG',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: AppColors.white.withOpacity(0.7),
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 11,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        cat.name.toUpperCase(),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: AppColors.white,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 9,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                upcoming.title,
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      color: AppColors.white,
-                                      fontSize: 22,
-                                    ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                upcoming.time.format(context),
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: AppColors.white.withOpacity(0.9),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
+                                const SizedBox(height: 8),
+                                Text(
+                                  upcoming.title,
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                        color: AppColors.white,
+                                        fontSize: 22,
+                                      ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  upcoming.time.format(context),
+                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                        color: AppColors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }()),
             ),
           ],
         ),

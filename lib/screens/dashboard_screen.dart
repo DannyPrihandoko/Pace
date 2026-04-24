@@ -1,54 +1,92 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/colors.dart';
 import '../providers/activity_provider.dart';
 import '../models/activity.dart';
+import '../widgets/schedule_item_card.dart';
 import 'edit_activity_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Selamat Pagi';
+    if (hour < 15) return 'Selamat Siang';
+    if (hour < 18) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activities = ref.watch(activityProvider);
+    final activities = ref.watch(todayActivitiesProvider);
     final upcomingActivity = activities.isNotEmpty ? activities.first : null;
 
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.fromLTRB(24.0, 32.0, 24.0, 32.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Halo!',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      _getGreeting(),
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       'Jadwal & Alarm Hari Ini',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.textMuted,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.textMuted,
                           ),
                     ),
                     const SizedBox(height: 32),
-                    _buildGlassCard(context, upcomingActivity),
+                    _buildUpcomingCard(context, upcomingActivity),
                   ],
                 ),
               ),
             ),
             if (activities.isEmpty)
               SliverFillRemaining(
+                hasScrollBody: false,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.event_busy_rounded, size: 64, color: AppColors.textMuted.withOpacity(0.5)),
-                      const SizedBox(height: 16),
-                      Text('Belum ada jadwal hari ini', style: TextStyle(color: AppColors.textMuted)),
+                      Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.event_note_outlined, 
+                          size: 64, 
+                          color: AppColors.primary.withOpacity(0.2)
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Belum ada jadwal hari ini', 
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ketuk + untuk menambah kegiatan', 
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),
@@ -60,16 +98,17 @@ class DashboardScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final activity = activities[index];
-                      return _buildScheduleItemCard(context, ref, activity);
+                      return ScheduleItemCard(activity: activity);
                     },
                     childCount: activities.length,
                   ),
                 ),
               ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.large(
         onPressed: () {
           Navigator.push(
             context,
@@ -77,143 +116,109 @@ class DashboardScreen extends ConsumerWidget {
           );
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.white),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: const Icon(Icons.add_rounded, color: AppColors.white, size: 32),
       ),
     );
   }
 
-  Widget _buildGlassCard(BuildContext context, Activity? upcoming) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: AppColors.mainGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textDark.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: upcoming == null
-          ? Center(
-              child: Text(
-                'Siap untuk hari ini?',
-                style: TextStyle(color: AppColors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
-              ),
-            )
-          : Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.alarm_on_rounded,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Kegiatan Mendatang',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppColors.white, // Pure white for max contrast
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${upcoming.title} (${upcoming.time.format(context)})',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: AppColors.white, // Pure white for max contrast
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildScheduleItemCard(BuildContext context, WidgetRef ref, Activity activity) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => EditActivityScreen(activity: activity)),
-        );
-      },
+  Widget _buildUpcomingCard(BuildContext context, Activity? upcoming) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        height: 160,
+        width: double.infinity,
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Theme.of(context).dividerTheme.color ?? AppColors.borderColor,
+          gradient: LinearGradient(
+            colors: AppColors.mainGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.activityColors[activity.id! % AppColors.activityColors.length].withOpacity(0.15) 
-                    : AppColors.activityColors[activity.id! % AppColors.activityColors.length].withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.event_note_rounded,
-                color: AppColors.activityColors[activity.id! % AppColors.activityColors.length],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    activity.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  Text(
-                    activity.time.format(context),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMuted,
-                        ),
-                  ),
-                ],
+            Positioned(
+              right: -20,
+              top: -20,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
-            Switch(
-              value: activity.isAlarmEnabled,
-              onChanged: (val) {
-                ref.read(activityProvider.notifier).toggleAlarm(activity);
-              },
-              activeColor: AppColors.primary,
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: upcoming == null
+                  ? Center(
+                      child: Text(
+                        'Siap untuk hari ini?',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.alarm_on_rounded,
+                            color: AppColors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'KEGIATAN MENDATANG',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: AppColors.white.withOpacity(0.7),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                upcoming.title,
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      color: AppColors.white,
+                                      fontSize: 22,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                upcoming.time.format(context),
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: AppColors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),

@@ -76,7 +76,7 @@ class NotificationService {
     if (!activity.isAlarmEnabled) return;
 
     final now = DateTime.now();
-    final scheduledDate = DateTime(
+    DateTime scheduledDate = DateTime(
       now.year,
       now.month,
       now.day,
@@ -84,7 +84,22 @@ class NotificationService {
       activity.time.minute,
     );
 
-    if (scheduledDate.isBefore(now)) return;
+    // If it's in the past and not recurring, don't schedule
+    if (scheduledDate.isBefore(now) && activity.recurrenceRule == null) return;
+
+    DateTimeComponents? matchComponents = DateTimeComponents.time;
+    
+    if (activity.recurrenceRule != null) {
+      if (activity.recurrenceRule!.contains('FREQ=DAILY')) {
+        matchComponents = DateTimeComponents.time;
+      } else if (activity.recurrenceRule!.contains('FREQ=WEEKLY')) {
+        matchComponents = DateTimeComponents.dayOfWeekAndTime;
+        // Adjust scheduledDate to the correct day of week if needed
+        // butzonedSchedule handles it if we match dayOfWeekAndTime
+      } else if (activity.recurrenceRule!.contains('FREQ=MONTHLY')) {
+        matchComponents = DateTimeComponents.dayOfMonthAndTime;
+      }
+    }
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id: activity.id ?? 0,
@@ -102,7 +117,7 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: matchComponents,
     );
   }
 

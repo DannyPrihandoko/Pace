@@ -1,12 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:home_widget/home_widget.dart';
 import '../models/activity.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 final activityProvider = StateNotifierProvider<ActivityNotifier, List<Activity>>((ref) {
   return ActivityNotifier();
+});
+
+final todayActivitiesProvider = Provider<List<Activity>>((ref) {
+  final activities = ref.watch(activityProvider);
+  final now = DateTime.now();
+  final todayStr = DateFormat('yyyy-MM-dd').format(now);
+  
+  return activities.where((a) => a.occursOn(now)).toList()..sort((a, b) {
+    final aMinutes = a.time.hour * 60 + a.time.minute;
+    final bMinutes = b.time.hour * 60 + b.time.minute;
+    return aMinutes.compareTo(bMinutes);
+  });
 });
 
 class ActivityNotifier extends StateNotifier<List<Activity>> {
@@ -16,7 +30,6 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
 
   Future<void> loadActivities() async {
     if (kIsWeb) {
-      // Mock data for Web testing
       state = [
         Activity(
           id: 1,
@@ -35,9 +48,11 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
           date: DateTime.now().toIso8601String().split('T')[0],
         ),
       ];
+      _updateWidget();
       return;
     }
     state = await DatabaseService.instance.readAllActivities();
+    _updateWidget();
   }
 
   Future<void> addActivity(Activity activity) async {
@@ -50,6 +65,7 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
     }
     
     state = [...state, newActivity];
+    _updateWidget();
     
     if (newActivity.isAlarmEnabled && !kIsWeb) {
       await NotificationService().scheduleActivityNotification(newActivity);
@@ -64,6 +80,7 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
       for (final a in state)
         if (a.id == activity.id) activity else a
     ];
+    _updateWidget();
 
     if (!kIsWeb) {
       await NotificationService().cancelNotification(activity.id!);
@@ -78,6 +95,7 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
       await DatabaseService.instance.deleteActivity(id);
     }
     state = state.where((a) => a.id != id).toList();
+    _updateWidget();
     if (!kIsWeb) {
       await NotificationService().cancelNotification(id);
     }
@@ -88,14 +106,34 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
     await updateActivity(updated);
   }
 
+  void _updateWidget() {
+    if (kIsWeb) return;
+
+    final now = DateTime.now();
+    final todayStr = DateFormat('yyyy-MM-dd').format(now);
+    
+    // Find next upcoming activity today
+    final todayActivities = state.where((a) => a.date == todayStr).toList()
+      ..sort((a, b) => (a.time.hour * 60 + a.time.minute).compareTo(b.time.hour * 60 + b.time.minute));
+    
+    final upcoming = todayActivities.firstWhere(
+      (a) => (a.time.hour * 60 + a.time.minute) > (now.hour * 60 + now.minute),
+      orElse: () => todayActivities.isNotEmpty ? todayActivities.first : Activity(title: 'No tasks', description: '', time: TimeOfDay.now(), date: todayStr),
+    );
+
+    HomeWidget.saveWidgetData<String>('upcoming_activity', upcoming.title);
+    HomeWidget.saveWidgetData<String>('activity_time', upcoming.title == 'No tasks' ? '--' : '${upcoming.time.hour.toString().padLeft(2, '0')}:${upcoming.time.minute.toString().padLeft(2, '0')}');
+    HomeWidget.updateWidget(
+      name: 'PaceWidgetProvider',
+      androidName: 'PaceWidgetProvider',
+    );
+  }
+
   Future<void> rescheduleActivity(Activity activity, DateTime newStartTime) async {
-    // Format date properly like 'YYYY-MM-DD'
     final year = newStartTime.year.toString();
     final month = newStartTime.month.toString().padLeft(2, '0');
     final day = newStartTime.day.toString().padLeft(2, '0');
     final formattedDate = '$year-$month-$day';
-
-    // Format new time
     final newTime = TimeOfDay(hour: newStartTime.hour, minute: newStartTime.minute);
 
     final updated = activity.copyWith(

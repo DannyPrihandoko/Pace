@@ -21,9 +21,19 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createUsersTable(db);
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE activities ADD COLUMN recurrenceRule TEXT');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -35,9 +45,40 @@ class DatabaseService {
         hour INTEGER NOT NULL,
         minute INTEGER NOT NULL,
         isAlarmEnabled INTEGER NOT NULL,
-        date TEXT NOT NULL
+        date TEXT NOT NULL,
+        recurrenceRule TEXT
       )
     ''');
+    await _createUsersTable(db);
+  }
+
+  Future _createUsersTable(Database db) async {
+     await db.execute('''
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        avatarUrl TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE connections (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        avatarUrl TEXT
+      )
+    ''');
+  }
+
+  // User Profile Methods
+  Future<int> saveUser(Map<String, dynamic> user) async {
+    final db = await instance.database;
+    return await db.insert('users', user, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<Map<String, dynamic>?> getUser() async {
+    final db = await instance.database;
+    final result = await db.query('users', limit: 1);
+    return result.isNotEmpty ? result.first : null;
   }
 
   Future<int> createActivity(Activity activity) async {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../theme/colors.dart';
 import 'main_navigation_screen.dart';
 
@@ -43,15 +43,29 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+    _initApp();
+  }
 
-    // Navigate to dashboard after delay
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        );
-      }
-    });
+  Future<void> _initApp() async {
+    // Request permissions
+    await [
+      Permission.camera,
+      Permission.notification,
+    ].request();
+
+    // Check for exact alarm permission (Android 12+)
+    if (await Permission.scheduleExactAlarm.isDenied) {
+      await Permission.scheduleExactAlarm.request();
+    }
+
+    // Delay for branding
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      );
+    }
   }
 
   @override

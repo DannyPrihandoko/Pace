@@ -7,6 +7,7 @@ class Activity {
   final TimeOfDay time;
   final bool isAlarmEnabled;
   final String date; // Format: YYYY-MM-DD
+  final String? recurrenceRule;
 
   Activity({
     this.id,
@@ -15,6 +16,7 @@ class Activity {
     required this.time,
     this.isAlarmEnabled = true,
     required this.date,
+    this.recurrenceRule,
   });
 
   DateTime get startTime {
@@ -40,6 +42,7 @@ class Activity {
       'minute': time.minute,
       'isAlarmEnabled': isAlarmEnabled ? 1 : 0,
       'date': date,
+      'recurrenceRule': recurrenceRule,
     };
   }
 
@@ -51,6 +54,7 @@ class Activity {
       time: TimeOfDay(hour: map['hour'], minute: map['minute']),
       isAlarmEnabled: map['isAlarmEnabled'] == 1,
       date: map['date'],
+      recurrenceRule: map['recurrenceRule'] as String?,
     );
   }
 
@@ -61,6 +65,7 @@ class Activity {
     TimeOfDay? time,
     bool? isAlarmEnabled,
     String? date,
+    String? recurrenceRule,
   }) {
     return Activity(
       id: id ?? this.id,
@@ -69,8 +74,38 @@ class Activity {
       time: time ?? this.time,
       isAlarmEnabled: isAlarmEnabled ?? this.isAlarmEnabled,
       date: date ?? this.date,
+      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
     );
   }
+
+  bool occursOn(DateTime targetDate) {
+    final targetStr = "${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}";
+    
+    if (date == targetStr) return true;
+    if (recurrenceRule == null) return false;
+    
+    final start = DateTime.parse(date);
+    final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final startDateOnly = DateTime(start.year, start.month, start.day);
+    
+    if (targetDateOnly.isBefore(startDateOnly)) return false;
+
+    if (recurrenceRule!.contains('FREQ=DAILY')) return true;
+    
+    if (recurrenceRule!.contains('FREQ=WEEKLY')) {
+       final dayNames = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+       final day = dayNames[targetDate.weekday - 1];
+       return recurrenceRule!.contains('BYDAY=$day');
+    }
+    
+    if (recurrenceRule!.contains('FREQ=MONTHLY')) {
+       return recurrenceRule!.contains('BYMONTHDAY=${targetDate.day};') || 
+              recurrenceRule!.contains('BYMONTHDAY=${targetDate.day}');
+    }
+    
+    return false;
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -81,7 +116,8 @@ class Activity {
           description == other.description &&
           time == other.time &&
           isAlarmEnabled == other.isAlarmEnabled &&
-          date == other.date;
+          date == other.date &&
+          recurrenceRule == other.recurrenceRule;
 
   @override
   int get hashCode =>
@@ -90,5 +126,6 @@ class Activity {
       description.hashCode ^
       time.hashCode ^
       isAlarmEnabled.hashCode ^
-      date.hashCode;
+      date.hashCode ^
+      recurrenceRule.hashCode;
 }

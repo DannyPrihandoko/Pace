@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../models/activity.dart';
 import '../providers/activity_provider.dart';
@@ -13,66 +14,70 @@ class CalendarScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activities = ref.watch(activityProvider);
     final dataSource = ActivityDataSource(activities);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jadwal Kalender'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Theme.of(context).brightness == Brightness.dark 
-            ? AppColors.white 
-            : AppColors.textDark,
+        title: const Text('Kalender'),
       ),
       body: SfCalendar(
-        key: ValueKey(activities.hashCode), // Force refresh when data changes
-        view: CalendarView.week,
-        allowedViews: const [CalendarView.day, CalendarView.week, CalendarView.month],
+        key: ValueKey(activities.hashCode),
+        view: CalendarView.month,
+        allowedViews: const [CalendarView.month, CalendarView.week, CalendarView.day],
         firstDayOfWeek: 1,
+        showNavigationArrow: true,
+        monthViewSettings: const MonthViewSettings(
+          showAgenda: true,
+          agendaItemHeight: 70,
+          agendaStyle: AgendaStyle(
+            appointmentTextStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
         dataSource: dataSource,
-        allowDragAndDrop: true,
-        appointmentTextStyle: const TextStyle(
+        allowDragAndDrop: false,
+        headerHeight: 64,
+        todayHighlightColor: AppColors.primary,
+        selectionDecoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          border: Border.all(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        appointmentTextStyle: GoogleFonts.plusJakartaSans(
           color: AppColors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
         ),
         headerStyle: CalendarHeaderStyle(
-          textStyle: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.white 
-                : AppColors.textDark,
-            fontWeight: FontWeight.bold,
+          textAlign: TextAlign.center,
+          textStyle: GoogleFonts.plusJakartaSans(
+            color: isDark ? AppColors.white : AppColors.textDark,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
           ),
         ),
         viewHeaderStyle: ViewHeaderStyle(
-          dayTextStyle: TextStyle(
-              color: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.white 
-                  : AppColors.textDark, 
-              fontWeight: FontWeight.bold),
-          dateTextStyle: TextStyle(
-              color: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.white 
-                  : AppColors.textDark, 
-              fontWeight: FontWeight.bold),
+          dayTextStyle: GoogleFonts.plusJakartaSans(
+              color: isDark ? AppColors.white.withOpacity(0.7) : AppColors.textMuted, 
+              fontWeight: FontWeight.w700,
+              fontSize: 12),
+          dateTextStyle: GoogleFonts.plusJakartaSans(
+              color: isDark ? AppColors.white : AppColors.textDark, 
+              fontWeight: FontWeight.w800,
+              fontSize: 16),
         ),
-        timeSlotViewSettings: const TimeSlotViewSettings(
-          startHour: 0,
+        timeSlotViewSettings: TimeSlotViewSettings(
+          startHour: 4,
           endHour: 24,
-          timeTextStyle: TextStyle(color: AppColors.textMuted),
+          timeTextStyle: GoogleFonts.plusJakartaSans(
+            color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        onDragEnd: (AppointmentDragEndDetails details) {
-          final dynamic appointment = details.appointment;
-          final DateTime? droppingTime = details.droppingTime;
-          
-          if (appointment is Activity && droppingTime != null) {
-            ref.read(activityProvider.notifier).rescheduleActivity(appointment, droppingTime);
-          } else if (appointment is List && appointment.isNotEmpty && droppingTime != null) {
-             final first = appointment.first;
-             if (first is Activity) {
-                ref.read(activityProvider.notifier).rescheduleActivity(first, droppingTime);
-             }
-          }
-        },
         onTap: (CalendarTapDetails details) {
           if (details.targetElement == CalendarElement.appointment) {
             final Activity activity = details.appointments!.first as Activity;
@@ -83,7 +88,7 @@ class CalendarScreen extends ConsumerWidget {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.large(
         onPressed: () {
           Navigator.push(
             context,
@@ -91,7 +96,8 @@ class CalendarScreen extends ConsumerWidget {
           );
         },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.white), // Bright on CTA
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: const Icon(Icons.add_rounded, color: AppColors.white, size: 32),
       ),
     );
   }
@@ -120,9 +126,10 @@ class ActivityDataSource extends CalendarDataSource {
   @override
   Color getColor(int index) {
     final activity = _getEventData(index);
-    if (!activity.isAlarmEnabled) return AppColors.textMuted.withOpacity(0.3);
+    if (!activity.isAlarmEnabled) {
+      return AppColors.textMuted.withOpacity(0.3);
+    }
     
-    // Pick color based on ID or index
     final colorIndex = (activity.id ?? index) % AppColors.activityColors.length;
     return AppColors.activityColors[colorIndex];
   }
@@ -130,6 +137,11 @@ class ActivityDataSource extends CalendarDataSource {
   @override
   bool isAllDay(int index) {
     return false;
+  }
+
+  @override
+  String? getRecurrenceRule(int index) {
+    return _getEventData(index).recurrenceRule;
   }
 
   Activity _getEventData(int index) {

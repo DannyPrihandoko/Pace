@@ -7,19 +7,18 @@ Aplikasi ini dirancang dengan memprioritaskan prinsip **usabilitas ISO 9241** da
 ## ✨ Fitur Utama
 
 -   **Manajemen Kegiatan Lanjutan**: 
-    -   Tambah, edit, dan hapus jadwal dengan alur kerja yang mulus.
+    -   **Kategori & Label Berwarna**: Organisasi jadwal dengan sistem *color-coding* yang *vibrant* dan *playful* (Kerja, Pribadi, Rapat, Kesehatan, dll).
     -   **Penjadwalan Berulang (Recurrence)**: Atur kegiatan rutin harian, mingguan, atau bulanan.
-    -   **Swipe to Delete**: Hapus kegiatan dengan gesekan jari yang dilengkapi dialog konfirmasi keamanan.
 -   **Dashboard & UX Premium**:
-    -   **Dynamic Greeting**: Sapaan dinamis berdasarkan waktu (Pagi/Siang/Sore/Malam).
-    -   **Glassmorphism Card**: Visualisasi kegiatan mendatang yang elegan dengan efek kaca transparan.
-    -   **Success Modals**: Animasi konfirmasi sukses setelah menambah atau memperbarui jadwal.
--   **Kalender Interaktif**: Tampilan mingguan dan bulanan yang terintegrasi dengan `syncfusion_flutter_calendar`.
--   **Sharing & Collaboration**:
-    -   **Profil Pengguna**: Identitas unik untuk setiap perangkat.
-    -   **QR-Based Sharing**: Bagikan jadwal hari ini hanya dengan scan kode QR (peer-to-peer).
-    -   **Adopt Schedule**: Impor jadwal teman langsung ke daftar kegiatan Anda sendiri.
--   **Alarm & Notifikasi Cerdas**: Pengingat otomatis yang presisi untuk setiap kegiatan, mendukung pengulangan berkala.
+    -   **Dynamic Greeting**: Sapaan dinamis berdasarkan waktu.
+    -   **Glassmorphism Card**: Visualisasi kegiatan mendatang yang elegan.
+-   **Widget Layar Utama (Home Widget)**:
+    -   **Upcoming 2x1 Widget**: Pantau jadwal langsung dari layar utama dengan tata letak kotak ikon yang rapi.
+    -   **Smart Filter**: Widget secara otomatis hanya menampilkan kegiatan yang akan datang.
+-   **Alarm & Notifikasi Cerdas**: 
+    -   **Pre-Activity Alerts**: Pilihan pengingat 10, 15, atau 30 menit sebelum jadwal dimulai.
+    -   **Full-Screen Alarm**: Notifikasi prioritas tinggi yang muncul sebagai *full-screen intent*.
+-   **Sharing & Collaboration**: QR-based sharing untuk berbagi dan mengadopsi jadwal teman secara instan.
 
 ## 📖 Panduan Penggunaan
 
@@ -27,6 +26,7 @@ Aplikasi ini dirancang dengan memprioritaskan prinsip **usabilitas ISO 9241** da
 - Buka aplikasi dan ketuk tombol **+** di pojok kanan bawah.
 - Masukkan judul, deskripsi, tanggal, dan waktu kegiatan.
 - Aktifkan **Alarm** jika Anda ingin menerima notifikasi saat waktu kegiatan tiba.
+- Pilih **Pengingat Pra-Kegiatan** (10/15/30 menit) jika Anda ingin diingatkan sebelum waktu kegiatan dimulai.
 - Ketuk **Simpan** dan Anda akan diarahkan kembali ke Dashboard setelah melihat konfirmasi sukses.
 
 ### 2. Mengatur Kegiatan Berulang

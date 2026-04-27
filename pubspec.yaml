@@ -54,6 +54,8 @@ dependencies:
   uuid: ^4.5.3
   home_widget: ^0.9.1
   permission_handler: ^11.3.1
+  alarm: ^5.2.0
+  progressive_time_picker: ^0.1.0
 
 dev_dependencies:
   flutter_test:

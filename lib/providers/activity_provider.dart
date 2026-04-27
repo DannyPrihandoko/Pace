@@ -112,17 +112,37 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
     final now = DateTime.now();
     final todayStr = DateFormat('yyyy-MM-dd').format(now);
     
-    // Find next upcoming activity today
-    final todayActivities = state.where((a) => a.date == todayStr).toList()
-      ..sort((a, b) => (a.time.hour * 60 + a.time.minute).compareTo(b.time.hour * 60 + b.time.minute));
-    
-    final upcoming = todayActivities.firstWhere(
-      (a) => (a.time.hour * 60 + a.time.minute) > (now.hour * 60 + now.minute),
-      orElse: () => todayActivities.isNotEmpty ? todayActivities.first : Activity(title: 'No tasks', description: '', time: TimeOfDay.now(), date: todayStr),
-    );
+    // Find upcoming activities today that haven't passed yet
+    final upcomingActivities = state.where((a) {
+      if (a.date != todayStr) return false;
+      final activityTimeMinutes = a.time.hour * 60 + a.time.minute;
+      final nowMinutes = now.hour * 60 + now.minute;
+      return activityTimeMinutes > nowMinutes;
+    }).toList()..sort((a, b) => (a.time.hour * 60 + a.time.minute).compareTo(b.time.hour * 60 + b.time.minute));
 
-    HomeWidget.saveWidgetData<String>('upcoming_activity', upcoming.title);
-    HomeWidget.saveWidgetData<String>('activity_time', upcoming.title == 'No tasks' ? '--' : '${upcoming.time.hour.toString().padLeft(2, '0')}:${upcoming.time.minute.toString().padLeft(2, '0')}');
+    if (upcomingActivities.isEmpty) {
+      HomeWidget.saveWidgetData<String>('upcoming_1_title', 'No more tasks today');
+      HomeWidget.saveWidgetData<String>('upcoming_1_time', '--');
+      HomeWidget.saveWidgetData<String>('upcoming_1_category', '✓');
+      HomeWidget.saveWidgetData<String>('upcoming_2_title', '');
+    } else {
+      // First activity
+      final next1 = upcomingActivities[0];
+      HomeWidget.saveWidgetData<String>('upcoming_1_title', next1.title);
+      HomeWidget.saveWidgetData<String>('upcoming_1_time', '${next1.time.hour.toString().padLeft(2, '0')}:${next1.time.minute.toString().padLeft(2, '0')}');
+      HomeWidget.saveWidgetData<String>('upcoming_1_category', next1.category);
+
+      // Second activity (if exists)
+      if (upcomingActivities.length > 1) {
+        final next2 = upcomingActivities[1];
+        HomeWidget.saveWidgetData<String>('upcoming_2_title', next2.title);
+        HomeWidget.saveWidgetData<String>('upcoming_2_time', '${next2.time.hour.toString().padLeft(2, '0')}:${next2.time.minute.toString().padLeft(2, '0')}');
+        HomeWidget.saveWidgetData<String>('upcoming_2_category', next2.category);
+      } else {
+        HomeWidget.saveWidgetData<String>('upcoming_2_title', '');
+      }
+    }
+
     HomeWidget.updateWidget(
       name: 'PaceWidgetProvider',
       androidName: 'PaceWidgetProvider',

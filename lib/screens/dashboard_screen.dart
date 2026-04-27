@@ -160,6 +160,17 @@ class DashboardScreen extends ConsumerWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(24),
+              child: upcoming == null
+                  ? Center(
+                      child: Text(
+                        'Istirahat sejenak,\nbelum ada kegiatan',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppColors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     )
                   : (() {
                       final cat = ActivityCategory.fromName(upcoming.category);
@@ -196,18 +207,18 @@ class DashboardScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: AppColors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(6),
+                                        color: cat.color.withOpacity(0.9),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         cat.name.toUpperCase(),
                                         style: GoogleFonts.plusJakartaSans(
-                                          color: AppColors.white,
+                                          color: Colors.white,
                                           fontWeight: FontWeight.w900,
                                           fontSize: 9,
-                                          letterSpacing: 0.5,
+                                          letterSpacing: 1.0,
                                         ),
                                       ),
                                     ),

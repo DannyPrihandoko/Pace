@@ -9,6 +9,7 @@ class Activity {
   final String date; // Format: YYYY-MM-DD
   final String? recurrenceRule;
   final String category;
+  final int preAlertMinutes;
 
   Activity({
     this.id,
@@ -19,7 +20,11 @@ class Activity {
     required this.date,
     this.recurrenceRule,
     this.category = 'Umum',
+    this.preAlertMinutes = 0,
+    this.snoozeMinutes = 5,
   });
+
+  final int snoozeMinutes;
 
   DateTime get startTime {
     final dateParts = date.split('-');
@@ -46,6 +51,8 @@ class Activity {
       'date': date,
       'recurrenceRule': recurrenceRule,
       'category': category,
+      'preAlertMinutes': preAlertMinutes,
+      'snoozeMinutes': snoozeMinutes,
     };
   }
 
@@ -59,6 +66,8 @@ class Activity {
       date: map['date'],
       recurrenceRule: map['recurrenceRule'] as String?,
       category: map['category'] ?? 'Umum',
+      preAlertMinutes: map['preAlertMinutes'] ?? 0,
+      snoozeMinutes: map['snoozeMinutes'] ?? 5,
     );
   }
 
@@ -81,6 +90,8 @@ class Activity {
       date: date ?? this.date,
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
       category: category ?? this.category,
+      preAlertMinutes: preAlertMinutes ?? this.preAlertMinutes,
+      snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
     );
   }
 
@@ -124,7 +135,9 @@ class Activity {
           isAlarmEnabled == other.isAlarmEnabled &&
           date == other.date &&
           recurrenceRule == other.recurrenceRule &&
-          category == other.category;
+          category == other.category &&
+          preAlertMinutes == other.preAlertMinutes &&
+          snoozeMinutes == other.snoozeMinutes;
 
   @override
   int get hashCode =>
@@ -135,5 +148,7 @@ class Activity {
       isAlarmEnabled.hashCode ^
       date.hashCode ^
       recurrenceRule.hashCode ^
-      category.hashCode;
+      category.hashCode ^
+      preAlertMinutes.hashCode ^
+      snoozeMinutes.hashCode;
 }

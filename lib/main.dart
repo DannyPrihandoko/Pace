@@ -5,6 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
+import 'services/alarm_service.dart';
+import 'screens/alarm_ringing_screen.dart';
+import 'package:alarm/alarm.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // State Provider to hold SharedPreferences
 // This matches the structured approach used in fina
@@ -15,11 +20,20 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize notification service with timeout to prevent hanging
   try {
     await NotificationService().init().timeout(const Duration(seconds: 5));
+    await AlarmService().init(); // Initialize Aggressive Alarm
+    
+    // Listen to alarm ring events
+    Alarm.ringStream.stream.listen((alarmSettings) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => AlarmRingingScreen(alarmSettings: alarmSettings),
+        ),
+      );
+    });
   } catch (e) {
-    debugPrint('Notification initialization failed or timed out: $e');
+    debugPrint('Service initialization failed: $e');
   }
   
   // Initialize shared preferences
@@ -54,6 +68,7 @@ class PaceApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'Pace',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

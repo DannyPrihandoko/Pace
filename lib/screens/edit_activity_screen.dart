@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/activity.dart';
 import '../providers/activity_provider.dart';
 import '../theme/colors.dart';
@@ -35,7 +36,13 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
     _selectedDate = widget.activity?.date ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
     _recurrenceRule = widget.activity?.recurrenceRule;
     _selectedCategory = widget.activity?.category ?? 'Umum';
+    _preAlertMinutes = widget.activity?.preAlertMinutes ?? 0;
+    _snoozeMinutes = widget.activity?.snoozeMinutes ?? 5;
   }
+
+  late int _snoozeMinutes;
+
+  late int _preAlertMinutes;
 
   String _getRecurrenceLabel() {
     if (_recurrenceRule == null) return 'Tidak';
@@ -194,6 +201,8 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
       date: _selectedDate,
       recurrenceRule: _recurrenceRule,
       category: _selectedCategory,
+      preAlertMinutes: _preAlertMinutes,
+      snoozeMinutes: _snoozeMinutes,
     );
 
     // Conflict Check
@@ -440,6 +449,48 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
                 ],
               ),
             ),
+            if (_isAlarmEnabled) ...[
+              const SizedBox(height: 24),
+              Text('Pengingat Pra-Kegiatan', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text('Dapatkan peringatan sebelum dimulai', style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textMuted,
+              )),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildPreAlertChip('Tidak', 0),
+                    _buildPreAlertChip('10 Menit', 10),
+                    _buildPreAlertChip('15 Menit', 15),
+                    _buildPreAlertChip('30 Menit', 30),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text('Durasi Snooze', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text('Waktu tunda saat alarm berbunyi', style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textMuted,
+              )),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildSnoozeChip('5m', 5),
+                    _buildSnoozeChip('10m', 10),
+                    _buildSnoozeChip('15m', 15),
+                    _buildSnoozeChip('30m', 30),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 48),
             SizedBox(
               width: double.infinity,
@@ -450,6 +501,78 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
             ),
             const SizedBox(height: 100),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSnoozeChip(String label, int minutes) {
+    final bool isSelected = _snoozeMinutes == minutes;
+    return GestureDetector(
+      onTap: () => setState(() => _snoozeMinutes = minutes),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.borderColor.withOpacity(0.5),
+            width: 1.5,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreAlertChip(String label, int minutes) {
+    final bool isSelected = _preAlertMinutes == minutes;
+    return GestureDetector(
+      onTap: () => setState(() => _preAlertMinutes = minutes),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.borderColor.withOpacity(0.5),
+            width: 1.5,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
         ),
       ),
     );

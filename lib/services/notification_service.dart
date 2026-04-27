@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -64,7 +65,9 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.initialize(
         settings: initializationSettings,
         onDidReceiveNotificationResponse: (NotificationResponse details) {
-          // Handle notification tap
+          if (details.actionId == 'snooze_action' && details.payload != null) {
+            _handleSnooze(details.payload!);
+          }
         },
       );
     } catch (e) {
@@ -76,13 +79,7 @@ class NotificationService {
     if (!activity.isAlarmEnabled) return;
 
     final now = DateTime.now();
-    DateTime scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      activity.time.hour,
-      activity.time.minute,
-    );
+    DateTime scheduledDate = activity.startTime;
 
     // If it's in the past and not recurring, don't schedule
     if (scheduledDate.isBefore(now) && activity.recurrenceRule == null) return;
@@ -94,34 +91,134 @@ class NotificationService {
         matchComponents = DateTimeComponents.time;
       } else if (activity.recurrenceRule!.contains('FREQ=WEEKLY')) {
         matchComponents = DateTimeComponents.dayOfWeekAndTime;
-        // Adjust scheduledDate to the correct day of week if needed
-        // butzonedSchedule handles it if we match dayOfWeekAndTime
       } else if (activity.recurrenceRule!.contains('FREQ=MONTHLY')) {
         matchComponents = DateTimeComponents.dayOfMonthAndTime;
       }
     }
 
+    // Common notification details for alarm behavior
+    final androidDetails = AndroidNotificationDetails(
+      'pace_activity_channel',
+      'Pace Activity Alerts',
+      channelDescription: 'Main channel for Pace activity alarms',
+      importance: Importance.max,
+      priority: Priority.max,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+      ticker: 'Pace Alarm',
+      actions: [
+        const AndroidNotificationAction(
+          'snooze_action',
+          'Snooze',
+          showsUserInterface: false,
+          cancelNotification: true,
+        ),
+      ],
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      interruptionLevel: InterruptionLevel.critical,
+    );
+
+    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+    // Schedule main notification
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id: activity.id ?? 0,
       title: activity.title,
-      body: activity.description,
+      body: activity.description.isEmpty ? 'Waktunya kegiatan Anda dimulai!' : activity.description,
       scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'pace_activity_channel',
-          'Pace Activity Alerts',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker',
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
+      notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: matchComponents,
+      payload: jsonEncode({
+        'id': activity.id,
+        'title': activity.title,
+        'body': activity.description.isEmpty ? 'Waktunya kegiatan Anda dimulai!' : activity.description,
+        'snoozeMinutes': activity.snoozeMinutes,
+      }),
     );
+
+    // Schedule pre-alert if enabled
+    if (activity.preAlertMinutes > 0) {
+      final preAlertDate = scheduledDate.subtract(Duration(minutes: activity.preAlertMinutes));
+      
+      // Only schedule if the pre-alert is in the future
+      if (preAlertDate.isAfter(now) || activity.recurrenceRule != null) {
+        await flutterLocalNotificationsPlugin.zonedSchedule(
+          id: (activity.id ?? 0) + 10000, // Unique ID for pre-alert
+          title: 'Pengingat: ${activity.title}',
+          body: '${activity.preAlertMinutes} menit menuju jadwal Anda.',
+          scheduledDate: tz.TZDateTime.from(preAlertDate, tz.local),
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: matchComponents,
+        );
+      }
+    }
   }
 
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id: id);
+    await flutterLocalNotificationsPlugin.cancel(id: id + 10000);
+    await flutterLocalNotificationsPlugin.cancel(id: id + 20000); // Also cancel potential snooze
+  }
+
+  void _handleSnooze(String payload) async {
+    try {
+      final data = jsonDecode(payload);
+      final int id = data['id'];
+      final String title = data['title'];
+      final String body = data['body'];
+      final int snoozeMinutes = data['snoozeMinutes'] ?? 5;
+
+      final snoozeTime = tz.TZDateTime.now(tz.local).add(Duration(minutes: snoozeMinutes));
+
+      // Re-use alarm settings for snooze
+      final androidDetails = AndroidNotificationDetails(
+        'pace_activity_channel',
+        'Pace Activity Alerts',
+        channelDescription: 'Main channel for Pace activity alarms',
+        importance: Importance.max,
+        priority: Priority.max,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
+        audioAttributesUsage: AudioAttributesUsage.alarm,
+        ticker: 'Pace Alarm',
+        actions: [
+          const AndroidNotificationAction(
+            'snooze_action',
+            'Snooze',
+            showsUserInterface: false,
+            cancelNotification: true,
+          ),
+        ],
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.critical,
+      );
+
+      final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id: id + 20000, // Unique ID for snoozed notification
+        title: '$title (Snooze)',
+        body: body,
+        scheduledDate: snoozeTime,
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: payload, // Keep payload for further snoozing
+      );
+    } catch (e) {
+      debugPrint('Error handling snooze: $e');
+    }
   }
 }

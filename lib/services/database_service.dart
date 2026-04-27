@@ -21,7 +21,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -37,6 +37,12 @@ class DatabaseService {
     if (oldVersion < 4) {
       await db.execute('ALTER TABLE activities ADD COLUMN category TEXT DEFAULT "Umum"');
     }
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE activities ADD COLUMN preAlertMinutes INTEGER DEFAULT 0');
+    }
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE activities ADD COLUMN snoozeMinutes INTEGER DEFAULT 5');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -50,7 +56,9 @@ class DatabaseService {
         isAlarmEnabled INTEGER NOT NULL,
         date TEXT NOT NULL,
         recurrenceRule TEXT,
-        category TEXT DEFAULT "Umum"
+        category TEXT DEFAULT "Umum",
+        preAlertMinutes INTEGER DEFAULT 0,
+        snoozeMinutes INTEGER DEFAULT 5
       )
     ''');
     await _createUsersTable(db);

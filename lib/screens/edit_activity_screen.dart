@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/activity.dart';
 import '../providers/activity_provider.dart';
+import '../widgets/success_modal.dart';
 import '../theme/colors.dart';
+import '../utils/error_codes.dart';
+import '../utils/storage_utils.dart';
 import 'package:intl/intl.dart';
 import '../models/activity_category.dart';
 
@@ -184,7 +187,22 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
     );
   }
 
-  void _save() {
+  void _save() async {
+    // 1. Storage Check
+    final hasSpace = await StorageUtils.hasEnoughSpace();
+    if (!hasSpace) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('[${AppErrorCodes.dbStorageFull}] ${AppErrorCodes.getMessage(AppErrorCodes.dbStorageFull)}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
     if (_titleController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Judul tidak boleh kosong')),
@@ -232,14 +250,34 @@ class _EditActivityScreenState extends ConsumerState<EditActivityScreen> {
       return;
     }
 
-    final bool isEdit = widget.activity != null;
-    if (!isEdit) {
-      ref.read(activityProvider.notifier).addActivity(activity);
-    } else {
-      ref.read(activityProvider.notifier).updateActivity(activity);
-    }
+    try {
+      final bool isEdit = widget.activity != null;
+      if (!isEdit) {
+        ref.read(activityProvider.notifier).addActivity(activity);
+      } else {
+        ref.read(activityProvider.notifier).updateActivity(activity);
+      }
 
-    _showSuccessModal(isEdit);
+      SuccessModal.show(
+        context,
+        title: isEdit ? 'Berhasil Diperbarui' : 'Berhasil Ditambahkan',
+        message: isEdit
+            ? 'Kegiatan "${activity.title}" telah diperbarui.'
+            : 'Kegiatan "${activity.title}" telah dijadwalkan.',
+      ).then((_) {
+        if (mounted) Navigator.pop(context);
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan kegiatan: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _showRecurrenceSheet() {

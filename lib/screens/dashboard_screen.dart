@@ -7,6 +7,7 @@ import '../providers/activity_provider.dart';
 import '../models/activity.dart';
 import '../widgets/schedule_item_card.dart';
 import 'edit_activity_screen.dart';
+import 'ai_chat_screen.dart';
 import '../models/activity_category.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -36,9 +37,22 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _getGreeting(),
-                      style: Theme.of(context).textTheme.headlineMedium,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _getGreeting(),
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AiChatScreen()),
+                          ),
+                          icon: const Icon(Icons.auto_awesome_rounded),
+                          color: AppColors.primary,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(

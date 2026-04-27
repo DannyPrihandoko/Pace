@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/success_modal.dart';
+import '../utils/error_codes.dart';
+import '../utils/storage_utils.dart';
 import '../providers/habit_provider.dart';
 import '../widgets/habit_card.dart';
 
@@ -48,11 +51,41 @@ class HabitTrackerScreen extends ConsumerWidget {
                 final habit = habits[index];
                 return HabitCard(
                   habit: habit,
-                  onTap: () {
-                    if (habit.type == HabitGoalType.boolean) {
-                      ref.read(habitProvider.notifier).toggleHabit(habit.id);
-                    } else {
-                      ref.read(habitProvider.notifier).incrementProgress(habit.id);
+                  onTap: () async {
+                    // Pre-check Storage
+                    if (!(await StorageUtils.hasEnoughSpace())) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('[ERR-DB-04] Penyimpanan penuh. Gagal memperbarui habit.'),
+                          backgroundColor: Colors.redAccent,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+
+                    try {
+                      if (habit.type == HabitGoalType.boolean) {
+                        ref.read(habitProvider.notifier).toggleHabit(habit.id);
+                        if (!habit.isCompleted) {
+                          SuccessModal.show(context, title: 'Habit Selesai!', message: 'Bagus! Kamu telah menyelesaikan "${habit.title}".')
+                              .then((_) => Navigator.pop(context));
+                        }
+                      } else {
+                        ref.read(habitProvider.notifier).incrementProgress(habit.id);
+                        if (habit.currentProgress + 1 >= habit.targetProgress) {
+                          SuccessModal.show(context, title: 'Target Tercapai!', message: 'Hebat! Target "${habit.title}" hari ini sudah tercapai.')
+                              .then((_) => Navigator.pop(context));
+                        }
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Gagal memperbarui habit: $e'),
+                          backgroundColor: Colors.redAccent,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
                     }
                   },
                 );

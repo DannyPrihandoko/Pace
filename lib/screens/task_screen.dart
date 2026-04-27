@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/success_modal.dart';
 import '../providers/task_provider.dart';
 import '../widgets/task_item_card.dart';
 
@@ -27,7 +28,21 @@ class TaskScreen extends ConsumerWidget {
           return TaskItemCard(
             task: task,
             onToggle: () {
-              ref.read(taskProvider.notifier).toggleTask(task.id);
+              try {
+                ref.read(taskProvider.notifier).toggleTask(task.id);
+                if (!task.isCompleted) {
+                  SuccessModal.show(context, title: 'Tugas Selesai!', message: 'Kerja bagus! Satu tugas lagi terselesaikan.')
+                      .then((_) => Navigator.pop(context));
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Gagal memperbarui tugas: $e'),
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
           );
         },

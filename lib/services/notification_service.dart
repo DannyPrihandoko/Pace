@@ -79,7 +79,7 @@ class NotificationService {
     if (!activity.isAlarmEnabled) return;
 
     final now = DateTime.now();
-    DateTime scheduledDate = activity.startTime;
+    DateTime scheduledDate = activity.startTime.subtract(Duration(minutes: activity.reminderOffset));
 
     // If it's in the past and not recurring, don't schedule
     if (scheduledDate.isBefore(now) && activity.recurrenceRule == null) return;

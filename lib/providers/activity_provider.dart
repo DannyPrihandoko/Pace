@@ -14,13 +14,27 @@ final activityProvider = StateNotifierProvider<ActivityNotifier, List<Activity>>
 final todayActivitiesProvider = Provider<List<Activity>>((ref) {
   final activities = ref.watch(activityProvider);
   final now = DateTime.now();
-  final todayStr = DateFormat('yyyy-MM-dd').format(now);
   
   return activities.where((a) => a.occursOn(now)).toList()..sort((a, b) {
     final aMinutes = a.time.hour * 60 + a.time.minute;
     final bMinutes = b.time.hour * 60 + b.time.minute;
     return aMinutes.compareTo(bMinutes);
   });
+});
+
+final upcomingActivityProvider = Provider<Activity?>((ref) {
+  final activities = ref.watch(todayActivitiesProvider);
+  final now = DateTime.now();
+  final nowMinutes = now.hour * 60 + now.minute;
+
+  try {
+    return activities.firstWhere((a) {
+      final activityMinutes = a.time.hour * 60 + a.time.minute;
+      return activityMinutes > nowMinutes;
+    });
+  } catch (_) {
+    return null;
+  }
 });
 
 class ActivityNotifier extends StateNotifier<List<Activity>> {
@@ -161,6 +175,11 @@ class ActivityNotifier extends StateNotifier<List<Activity>> {
       time: newTime,
     );
 
+    await updateActivity(updated);
+  }
+
+  Future<void> toggleCompletion(Activity activity) async {
+    final updated = activity.copyWith(isCompleted: !activity.isCompleted);
     await updateActivity(updated);
   }
 }

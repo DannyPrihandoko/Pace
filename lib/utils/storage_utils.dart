@@ -18,7 +18,7 @@ class StorageUtils {
       );
       
       // Convert free space to MB
-      double freeMb = space.freeSize / (1024 * 1024);
+      double freeMb = space.free / (1024 * 1024);
       
       return freeMb > minRequiredMb;
     } catch (e) {

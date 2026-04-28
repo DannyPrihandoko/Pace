@@ -6,6 +6,7 @@ import '../utils/error_codes.dart';
 import '../utils/storage_utils.dart';
 import '../providers/habit_provider.dart';
 import '../widgets/habit_card.dart';
+import '../models/habit.dart';
 
 class HabitTrackerScreen extends ConsumerWidget {
   const HabitTrackerScreen({super.key});

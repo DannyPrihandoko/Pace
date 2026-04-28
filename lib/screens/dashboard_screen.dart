@@ -24,7 +24,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activities = ref.watch(todayActivitiesProvider);
-    final upcomingActivity = activities.isNotEmpty ? activities.first : null;
+    final upcomingActivity = ref.watch(upcomingActivityProvider);
 
     return Scaffold(
       body: SafeArea(

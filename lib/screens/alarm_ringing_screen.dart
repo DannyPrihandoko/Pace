@@ -120,7 +120,7 @@ class _AlarmRingingScreenState extends State<AlarmRingingScreen> with SingleTick
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    widget.alarmSettings.notificationTitle,
+                    widget.alarmSettings.notificationSettings?.title ?? 'Alarm Pace',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 24,
@@ -131,7 +131,7 @@ class _AlarmRingingScreenState extends State<AlarmRingingScreen> with SingleTick
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                     child: Text(
-                      widget.alarmSettings.notificationBody,
+                      widget.alarmSettings.notificationSettings?.body ?? 'Waktunya beraktivitas!',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,

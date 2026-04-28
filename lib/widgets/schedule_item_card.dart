@@ -21,7 +21,7 @@ class ScheduleItemCard extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Time Column (Increased width and better alignment)
+          // Time Column
           SizedBox(
             width: 75,
             child: Padding(
@@ -32,26 +32,26 @@ class ScheduleItemCard extends ConsumerWidget {
                   Text(
                     activity.time.format(context).split(' ')[0],
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
-                      fontSize: 18,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
+                          fontSize: 18,
+                        ),
                   ),
                   Text(
                     activity.time.period == DayPeriod.am ? 'AM' : 'PM',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.textMuted,
-                      letterSpacing: 1,
-                    ),
+                          fontWeight: FontWeight.w900,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.textMuted,
+                          letterSpacing: 1,
+                        ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 20), // More space before timeline
+          const SizedBox(width: 20),
           // Timeline Line
           Column(
             children: [
@@ -81,7 +81,7 @@ class ScheduleItemCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(width: 20), // More space after timeline
+          const SizedBox(width: 20),
           // Content Card
           Expanded(
             child: Container(
@@ -128,146 +128,179 @@ class ScheduleItemCard extends ConsumerWidget {
                     );
                   },
                   borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardTheme.color,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.white.withOpacity(0.08)
-                            : AppColors.borderColor,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        if (Theme.of(context).brightness == Brightness.light)
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                      ],
-                    ),
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: [
-                          // Vertical accent line inside card
-                          Container(
-                            width: 4,
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(2),
+                  child: Opacity(
+                    opacity: activity.isCompleted ? 0.6 : 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.white.withOpacity(0.08)
+                              : AppColors.borderColor,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          if (Theme.of(context).brightness == Brightness.light)
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
+                        ],
+                      ),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          children: [
+                            // Checklist Button
+                            GestureDetector(
+                              onTap: () {
+                                ref.read(activityProvider.notifier).toggleCompletion(activity);
+                              },
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: activity.isCompleted ? color : Colors.transparent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: activity.isCompleted ? color : color.withOpacity(0.4),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: activity.isCompleted
+                                    ? const Icon(Icons.check, size: 18, color: Colors.white)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Vertical accent line inside card
+                            Container(
+                              width: 3,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          activity.title,
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 16,
+                                                letterSpacing: -0.3,
+                                                decoration: activity.isCompleted
+                                                    ? TextDecoration.lineThrough
+                                                    : null,
+                                                color: activity.isCompleted
+                                                    ? Theme.of(context).brightness == Brightness.dark
+                                                        ? AppColors.darkTextSecondary
+                                                        : AppColors.textMuted
+                                                    : null,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: color.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(cat.icon, size: 10, color: color),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              cat.name.toUpperCase(),
+                                              style: GoogleFonts.plusJakartaSans(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                color: color,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (activity.description.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
                                       child: Text(
-                                        activity.title,
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 16,
-                                              letterSpacing: -0.3,
+                                        activity.description,
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? AppColors.darkTextSecondary
+                                                  : AppColors.textMuted,
+                                              height: 1.2,
                                             ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: color.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(cat.icon, size: 10, color: color),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            cat.name.toUpperCase(),
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w900,
-                                              color: color,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (activity.description.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    activity.description,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).brightness == Brightness.dark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.textMuted,
-                                      height: 1.2,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              if (activity.recurrenceRule != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.repeat_rounded, size: 12, color: color),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'Berulang',
-                                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                            color: color,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                  if (activity.recurrenceRule != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: color.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                      ],
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.repeat_rounded, size: 12, color: color),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Berulang',
+                                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                                    color: color,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                            ],
-                          ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Transform.scale(
+                              scale: 0.85,
+                              child: Switch(
+                                value: activity.isAlarmEnabled,
+                                onChanged: (val) {
+                                  ref.read(activityProvider.notifier).toggleAlarm(activity);
+                                },
+                                activeColor: AppColors.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Transform.scale(
-                          scale: 0.85,
-                          child: Switch(
-                            value: activity.isAlarmEnabled,
-                            onChanged: (val) {
-                              ref.read(activityProvider.notifier).toggleAlarm(activity);
-                            },
-                            activeColor: AppColors.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

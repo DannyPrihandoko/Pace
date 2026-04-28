@@ -56,12 +56,15 @@ class SleepScheduleScreen extends ConsumerWidget {
                       ref.read(sleepProvider.notifier).updateBedtime(TimeOfDay(hour: start.h, minute: start.m));
                       ref.read(sleepProvider.notifier).updateWakeupTime(TimeOfDay(hour: end.h, minute: end.m));
                     },
+                    onSelectionEnd: (start, end, valid) {
+                      // Handle selection end
+                    },
                     decoration: TimePickerDecoration(
                       baseColor: borderColor,
-                      pickerBaseColor: softBlue.withOpacity(0.2),
-                      sweepColor: softBlue,
-                      accentColor: softBlue,
-                      showHandlerOutterRing: false,
+                      sweepDecoration: TimePickerSweepDecoration(
+                        pickerColor: softBlue,
+                        pickerStrokeWidth: 12,
+                      ),
                       initHandlerDecoration: TimePickerHandlerDecoration(
                         color: navyBg,
                         shape: BoxShape.circle,

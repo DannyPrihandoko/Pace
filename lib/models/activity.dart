@@ -10,6 +10,9 @@ class Activity {
   final String? recurrenceRule;
   final String category;
   final int preAlertMinutes;
+  final int duration; // In minutes
+  final int reminderOffset; // In minutes
+  final bool isCompleted;
 
   Activity({
     this.id,
@@ -22,6 +25,9 @@ class Activity {
     this.category = 'Umum',
     this.preAlertMinutes = 0,
     this.snoozeMinutes = 5,
+    this.duration = 60,
+    this.reminderOffset = 0,
+    this.isCompleted = false,
   });
 
   final int snoozeMinutes;
@@ -38,7 +44,7 @@ class Activity {
     return DateTime(now.year, now.month, now.day, time.hour, time.minute);
   }
 
-  DateTime get endTime => startTime.add(const Duration(hours: 1));
+  DateTime get endTime => startTime.add(Duration(minutes: duration));
 
   Map<String, dynamic> toMap() {
     return {
@@ -53,6 +59,9 @@ class Activity {
       'category': category,
       'preAlertMinutes': preAlertMinutes,
       'snoozeMinutes': snoozeMinutes,
+      'duration': duration,
+      'reminderOffset': reminderOffset,
+      'isCompleted': isCompleted ? 1 : 0,
     };
   }
 
@@ -68,6 +77,9 @@ class Activity {
       category: map['category'] ?? 'Umum',
       preAlertMinutes: map['preAlertMinutes'] ?? 0,
       snoozeMinutes: map['snoozeMinutes'] ?? 5,
+      duration: map['duration'] ?? 60,
+      reminderOffset: map['reminderOffset'] ?? 0,
+      isCompleted: map['isCompleted'] == 1,
     );
   }
 
@@ -80,6 +92,9 @@ class Activity {
     String? date,
     String? recurrenceRule,
     String? category,
+    int? duration,
+    int? reminderOffset,
+    bool? isCompleted,
   }) {
     return Activity(
       id: id ?? this.id,
@@ -92,6 +107,9 @@ class Activity {
       category: category ?? this.category,
       preAlertMinutes: preAlertMinutes ?? this.preAlertMinutes,
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
+      duration: duration ?? this.duration,
+      reminderOffset: reminderOffset ?? this.reminderOffset,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 
@@ -137,7 +155,10 @@ class Activity {
           recurrenceRule == other.recurrenceRule &&
           category == other.category &&
           preAlertMinutes == other.preAlertMinutes &&
-          snoozeMinutes == other.snoozeMinutes;
+          snoozeMinutes == other.snoozeMinutes &&
+          duration == other.duration &&
+          reminderOffset == other.reminderOffset &&
+          isCompleted == other.isCompleted;
 
   @override
   int get hashCode =>
@@ -150,5 +171,8 @@ class Activity {
       recurrenceRule.hashCode ^
       category.hashCode ^
       preAlertMinutes.hashCode ^
-      snoozeMinutes.hashCode;
+      snoozeMinutes.hashCode ^
+      duration.hashCode ^
+      reminderOffset.hashCode ^
+      isCompleted.hashCode;
 }

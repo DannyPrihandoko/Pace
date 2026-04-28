@@ -40,12 +40,17 @@ class AlarmService {
       assetAudioPath: assetAudioPath,
       loopAudio: loopAudio,
       vibrate: vibrate,
-      volume: volume,
-      fadeDuration: fadeDuration ? 3.0 : 0.0, // Suara membesar perlahan selama 3 detik
-      notificationTitle: label,
-      notificationBody: body,
-      enableNotificationOnKill: true, // PENTING: Tetap bunyi meski app di-kill
-      stopOnTerminate: false, // PENTING: Tetap jalan meski app di-kill
+      notificationSettings: NotificationSettings(
+        title: label,
+        body: body,
+        stopButton: 'Berhenti',
+      ),
+      volumeSettings: fadeDuration
+          ? VolumeSettings.fade(
+              volume: volume,
+              fadeDuration: const Duration(seconds: 3),
+            )
+          : VolumeSettings.fixed(volume: volume),
       androidFullScreenIntent: true, // Membangunkan layar dan muncul full screen
     );
 
@@ -61,14 +66,14 @@ class AlarmService {
 
   /// Menghentikan semua alarm yang sedang berjalan
   Future<void> stopAll() async {
-    final alarms = Alarm.getAlarms();
+    final alarms = await Alarm.getAlarms();
     for (final alarm in alarms) {
       await Alarm.stop(alarm.id);
     }
   }
 
   /// Mengecek apakah ada alarm yang sedang berbunyi
-  bool isRinging(int id) {
-    return Alarm.isRinging(id);
+  Future<bool> isRinging(int id) async {
+    return await Alarm.isRinging(id);
   }
 }

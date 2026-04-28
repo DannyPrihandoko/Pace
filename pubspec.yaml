@@ -55,7 +55,7 @@ dependencies:
   home_widget: ^0.9.1
   permission_handler: ^11.3.1
   alarm: ^5.2.0
-  progressive_time_picker: ^0.1.0
+  progressive_time_picker: ^1.0.4
   storage_space: ^1.0.1
 
 dev_dependencies:

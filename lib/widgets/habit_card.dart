@@ -14,27 +14,29 @@ class HabitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Professional Palette
+    // 2D Flat Palette
+    const black = Colors.black;
     const navyBlue = Color(0xFF1E3A8A);
-    const borderColor = Color(0xFFE2E8F0);
     const accentGreen = Color(0xFF10B981); // Emerald 500
     const pastelGreen = Color(0xFFD1FAE5); // Emerald 100
     const accentBlue = Color(0xFF3B82F6);  // Blue 500
-    const pastelBlue = Color(0xFFDBEAFE);  // Blue 100
 
     final bool isProgress = habit.type == HabitGoalType.progress;
     final double progress = habit.progressPercentage;
+    
+    // Background color based on completion status
+    final bgColor = habit.isCompleted ? pastelGreen : Colors.white;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 1.5),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6), // Sharp radius
+        border: Border.all(color: black, width: 2.0), // Hard 2D border
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -54,12 +56,13 @@ class HabitCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Streak Badge
+                  // Streak Badge (Flat)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: navyBlue.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: black, width: 1.5),
                     ),
                     child: Row(
                       children: [
@@ -88,8 +91,8 @@ class HabitCard extends StatelessWidget {
                       'Progress',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w700,
+                        color: black,
                       ),
                     ),
                     Text(
@@ -103,26 +106,28 @@ class HabitCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 10,
-                        width: double.infinity,
-                        color: pastelBlue,
+                // 2D Flat Progress Bar
+                Container(
+                  height: 16,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: black, width: 2.0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: progress,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                      decoration: BoxDecoration(
+                        color: accentBlue,
+                        border: progress > 0 && progress < 1.0 
+                            ? const Border(right: BorderSide(color: black, width: 2.0)) 
+                            : null,
                       ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 600),
-                        curve: Curves.easeOutCubic,
-                        height: 10,
-                        width: MediaQuery.of(context).size.width * 0.7 * progress, // Simplified width logic
-                        decoration: BoxDecoration(
-                          color: accentBlue,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ] else ...[
@@ -134,24 +139,22 @@ class HabitCard extends StatelessWidget {
                       habit.isCompleted ? 'Sudah Selesai' : 'Belum Selesai',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: habit.isCompleted ? accentGreen : Colors.grey[600],
+                        fontWeight: FontWeight.w700,
+                        color: black,
                       ),
                     ),
+                    // 2D Flat Checkbox
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
-                        color: habit.isCompleted ? accentGreen : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: habit.isCompleted ? accentGreen : borderColor,
-                          width: 2,
-                        ),
+                        color: habit.isCompleted ? accentGreen : Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: black, width: 2.0),
                       ),
                       child: habit.isCompleted
-                          ? const Icon(Icons.check_rounded, size: 20, color: Colors.white)
+                          ? const Icon(Icons.check, size: 20, color: black)
                           : null,
                     ),
                   ],
@@ -164,3 +167,4 @@ class HabitCard extends StatelessWidget {
     );
   }
 }
+

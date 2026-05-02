@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:alarm/alarm.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AlarmService {
   static final AlarmService _instance = AlarmService._internal();
@@ -15,6 +16,24 @@ class AlarmService {
     Alarm.ringStream.stream.listen((alarmSettings) {
       debugPrint("Alarm berbunyi: ${alarmSettings.id}");
     });
+  }
+
+  /// Meminta semua izin krusial agar alarm tidak di-kill OS
+  Future<void> checkAndRequestPermissions() async {
+    // 1. Izin Notifikasi
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+    
+    // 2. Izin Exact Alarm (Android 12+)
+    if (await Permission.scheduleExactAlarm.isDenied) {
+      await Permission.scheduleExactAlarm.request();
+    }
+
+    // 3. PENGECUALIAN OPTIMASI BATERAI
+    if (await Permission.ignoreBatteryOptimizations.isDenied) {
+      await Permission.ignoreBatteryOptimizations.request();
+    }
   }
 
   /// Menjadwalkan alarm agresif
@@ -34,6 +53,9 @@ class AlarmService {
     double volume = 1.0,
     bool fadeDuration = true,
   }) async {
+    // Pastikan izin sudah diminta sebelum menjadwalkan
+    await checkAndRequestPermissions();
+
     final alarmSettings = AlarmSettings(
       id: id,
       dateTime: dateTime,

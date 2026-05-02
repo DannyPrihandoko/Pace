@@ -28,11 +28,14 @@ void main() async {
     
     // Listen to alarm ring events
     Alarm.ringStream.stream.listen((alarmSettings) {
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (context) => AlarmRingingScreen(alarmSettings: alarmSettings),
-        ),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => AlarmRingingScreen(alarmSettings: alarmSettings),
+          ),
+          (route) => route.isFirst,
+        );
+      });
     });
   } catch (e) {
     debugPrint('Service initialization failed: $e');

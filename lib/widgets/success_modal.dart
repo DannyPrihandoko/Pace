@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/colors.dart';
 
 class SuccessModal extends StatefulWidget {
   final String title;
@@ -26,19 +25,23 @@ class SuccessModal extends StatefulWidget {
 
 class _SuccessModalState extends State<SuccessModal> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
     );
-    _scaleAnimation = CurvedAnimation(
+    // Flat straightforward slide up without bouncy elastic effect
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15), 
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.elasticOut,
-    );
+      curve: Curves.easeOut, // Simple ease out
+    ));
     _controller.forward();
   }
 
@@ -50,86 +53,96 @@ class _SuccessModalState extends State<SuccessModal> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // 2D Flat Palette
+    const black = Colors.black;
+    const bgWhite = Colors.white;
+    const accentGreen = Color(0xFF10B981); // Emerald Green
+    const accentYellow = Color(0xFFFEF08A); // Bright Yellow for action button
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Flat shape
+      elevation: 0, // No shadow from the dialog
       backgroundColor: Colors.transparent,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Success Icon with Glow
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: AppColors.success,
-                  size: 48,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                widget.message,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  color: AppColors.textMuted,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+      child: FadeTransition(
+        opacity: _controller,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: bgWhite,
+              borderRadius: BorderRadius.circular(4), // Sharp corners
+              border: Border.all(color: black, width: 3.0), // Thick black border
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 2D Flat Icon Box
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: accentGreen,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: black, width: 3.0), // Hard border on icon
                   ),
-                  child: Text(
-                    'Selesai',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  child: const Icon(
+                    Icons.check, // Simple solid check icon
+                    color: black, // Black icon to match the flat aesthetic
+                    size: 48,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Text(
+                  widget.title.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: black,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.message,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: black.withOpacity(0.8),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Flat Action Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentYellow, // Bright accent
+                      foregroundColor: black, // Black text
+                      elevation: 0, // No button shadow
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4), // Sharp button corners
+                        side: const BorderSide(color: black, width: 3.0), // Thick button border
+                      ),
+                    ),
+                    child: Text(
+                      'LANJUT',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w900, // Extra bold
+                        fontSize: 16,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

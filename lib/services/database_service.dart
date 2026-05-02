@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -21,7 +22,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -43,6 +44,19 @@ class DatabaseService {
     if (oldVersion < 6) {
       await db.execute('ALTER TABLE activities ADD COLUMN snoozeMinutes INTEGER DEFAULT 5');
     }
+    if (oldVersion < 7) {
+      await db.execute('''
+        CREATE TABLE sync_queue (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          operation TEXT NOT NULL,
+          entity TEXT NOT NULL,
+          entity_id INTEGER NOT NULL,
+          payload TEXT,
+          created_at TEXT NOT NULL,
+          status TEXT DEFAULT 'pending'
+        )
+      ''');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -59,6 +73,17 @@ class DatabaseService {
         category TEXT DEFAULT "Umum",
         preAlertMinutes INTEGER DEFAULT 0,
         snoozeMinutes INTEGER DEFAULT 5
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE sync_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        operation TEXT NOT NULL,
+        entity TEXT NOT NULL,
+        entity_id INTEGER NOT NULL,
+        payload TEXT,
+        created_at TEXT NOT NULL,
+        status TEXT DEFAULT 'pending'
       )
     ''');
     await _createUsersTable(db);
@@ -95,7 +120,20 @@ class DatabaseService {
 
   Future<int> createActivity(Activity activity) async {
     final db = await instance.database;
-    return await db.insert('activities', activity.toMap());
+    return await db.transaction((txn) async {
+      final id = await txn.insert('activities', activity.toMap());
+      final activityWithId = activity.copyWith(id: id);
+      
+      await txn.insert('sync_queue', {
+        'operation': 'CREATE',
+        'entity': 'activity',
+        'entity_id': id,
+        'payload': jsonEncode(activityWithId.toMap()),
+        'created_at': DateTime.now().toIso8601String(),
+        'status': 'pending'
+      });
+      return id;
+    });
   }
 
   Future<List<Activity>> readAllActivities() async {
@@ -106,21 +144,45 @@ class DatabaseService {
 
   Future<int> updateActivity(Activity activity) async {
     final db = await instance.database;
-    return db.update(
-      'activities',
-      activity.toMap(),
-      where: 'id = ?',
-      whereArgs: [activity.id],
-    );
+    return await db.transaction((txn) async {
+      final result = await txn.update(
+        'activities',
+        activity.toMap(),
+        where: 'id = ?',
+        whereArgs: [activity.id],
+      );
+      
+      await txn.insert('sync_queue', {
+        'operation': 'UPDATE',
+        'entity': 'activity',
+        'entity_id': activity.id!,
+        'payload': jsonEncode(activity.toMap()),
+        'created_at': DateTime.now().toIso8601String(),
+        'status': 'pending'
+      });
+      return result;
+    });
   }
 
   Future<int> deleteActivity(int id) async {
     final db = await instance.database;
-    return await db.delete(
-      'activities',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.transaction((txn) async {
+      final result = await txn.delete(
+        'activities',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      await txn.insert('sync_queue', {
+        'operation': 'DELETE',
+        'entity': 'activity',
+        'entity_id': id,
+        'payload': null,
+        'created_at': DateTime.now().toIso8601String(),
+        'status': 'pending'
+      });
+      return result;
+    });
   }
 
   Future close() async {

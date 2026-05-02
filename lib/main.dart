@@ -8,6 +8,7 @@ import 'services/notification_service.dart';
 import 'services/alarm_service.dart';
 import 'screens/alarm_ringing_screen.dart';
 import 'package:alarm/alarm.dart';
+import 'services/sync_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -23,6 +24,7 @@ void main() async {
   try {
     await NotificationService().init().timeout(const Duration(seconds: 5));
     await AlarmService().init(); // Initialize Aggressive Alarm
+    SyncService.instance.initialize(); // Initialize offline-first queue sync
     
     // Listen to alarm ring events
     Alarm.ringStream.stream.listen((alarmSettings) {

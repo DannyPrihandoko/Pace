@@ -56,14 +56,14 @@ class SyncService {
           //   success = await ApiClient.delete('/activities/${item['entity_id']}');
           // }
           
-          debugPrint('Syncing \${item['operation']} on \${item['entity']} ID: \${item['entity_id']}...');
+          debugPrint("Syncing ${item['operation']} on ${item['entity']} ID: ${item['entity_id']}...");
           // Simulate network request
           await Future.delayed(const Duration(milliseconds: 500));
           
           // Assume success for now
           success = true; 
         } catch (e) {
-          debugPrint('Sync failed for item \${item['id']}: \$e');
+          debugPrint("Sync failed for item ${item['id']}: $e");
           // Leave as 'pending', will be retried when connection restores
           success = false; 
         }
@@ -71,11 +71,11 @@ class SyncService {
         if (success) {
            // Delete from queue if successfully synced
            await db.delete('sync_queue', where: 'id = ?', whereArgs: [item['id']]);
-           debugPrint('Successfully synced item \${item['id']}');
+           debugPrint("Successfully synced item ${item['id']}");
         }
       }
     } catch (e) {
-      debugPrint('Error processing sync queue: \$e');
+      debugPrint('Error processing sync queue: $e');
     } finally {
       _isSyncing = false;
     }

@@ -1,59 +1,52 @@
 # Pace 🏃‍♂️
 
-**Pace** adalah aplikasi penjadwalan kegiatan dan alarm pribadi yang dirancang dengan antarmuka modern, premium, dan intuitif. Aplikasi ini membantu Anda mengelola rutinitas harian dengan pengingat cerdas, manajemen jadwal yang fleksibel, dan fitur berbagi jadwal yang inovatif.
+**Pace** adalah aplikasi penjadwalan kegiatan, pembentukan kebiasaan (*habit tracking*), dan pelacak keseimbangan hidup pribadi yang dirancang dengan antarmuka **2D Flat Design** yang modern, premium, dan intuitif. Aplikasi ini membantu Anda mengelola rutinitas harian dengan pengingat cerdas, sistem gamifikasi, dan asisten AI personal.
 
-Aplikasi ini dirancang dengan memprioritaskan prinsip **usabilitas ISO 9241** dan estetika desain kontemporer.
+Aplikasi ini dirancang dengan memprioritaskan produktivitas tinggi melalui pendekatan *Offline-First* dan estetika desain kontemporer.
 
 ## ✨ Fitur Utama
 
--   **Manajemen Kegiatan Lanjutan**: 
-    -   **Kategori & Label Berwarna**: Organisasi jadwal dengan sistem *color-coding* yang *vibrant* dan *playful* (Kerja, Pribadi, Rapat, Kesehatan, dll).
-    -   **Penjadwalan Berulang (Recurrence)**: Atur kegiatan rutin harian, mingguan, atau bulanan.
--   **Dashboard & UX Premium**:
-    -   **Dynamic Greeting**: Sapaan dinamis berdasarkan waktu.
-    -   **Glassmorphism Card**: Visualisasi kegiatan mendatang yang elegan.
--   **Widget Layar Utama (Home Widget)**:
-    -   **Upcoming 2x1 Widget**: Pantau jadwal langsung dari layar utama dengan tata letak kotak ikon yang rapi.
-    -   **Smart Filter**: Widget secara otomatis hanya menampilkan kegiatan yang akan datang.
+-   🎨 **2D Flat Design Aesthetic**: Antarmuka bergaya *retro-modern* dengan warna solid tebal, garis *border* hitam tegas, dan tipografi mencolok tanpa elemen bayangan (*shadowless*).
+-   🎮 **Gamifikasi Keseimbangan Hidup (Life Spheres)**: Lacak distribusi fokus Anda pada berbagai area hidup (Kesehatan, Karir, Sosial, dll) melalui *Spider Chart Custom 2D* yang bertumbuh setiap kali tugas/habit diselesaikan.
+-   🤖 **AI Performance Insight**: *AI Engine* terintegrasi yang mengagregasi rasio penyelesaian habit dan kualitas jadwal tidur (7 hari terakhir) untuk memberikan wawasan, teguran bersahabat, atau apresiasi khusus secara langsung di Dashboard.
+-   ☁️ **Arsitektur Sinkronisasi Offline-First**: Aplikasi berfungsi 100% tanpa internet menggunakan sistem antrean (*Queue*) di SQLite. Operasi CRUD (Create, Update, Delete) akan langsung direfleksikan di antarmuka pengguna (*Optimistic UI*) dan disinkronisasikan ke *cloud* secara otomatis di latar belakang saat koneksi internet kembali tersedia.
+-   **Manajemen Kegiatan & Habit Lanjutan**: 
+    -   Organisasi jadwal dengan warna *vibrant*.
+    -   Sistem penjadwalan berulang (*Recurrence*).
+    -   Pelacakan durasi tidur (*Sleep Schedule*).
 -   **Alarm & Notifikasi Cerdas**: 
-    -   **Pre-Activity Alerts**: Pilihan pengingat 10, 15, atau 30 menit sebelum jadwal dimulai.
-    -   **Full-Screen Alarm**: Notifikasi prioritas tinggi yang muncul sebagai *full-screen intent*.
+    -   *Pre-Activity Alerts* (10/15/30 menit sebelum jadwal).
+    -   *Full-Screen Intent* untuk alarm prioritas tinggi.
 -   **Sharing & Collaboration**: QR-based sharing untuk berbagi dan mengadopsi jadwal teman secara instan.
 
 ## 📖 Panduan Penggunaan
 
-### 1. Menambah & Mengelola Jadwal
-- Buka aplikasi dan ketuk tombol **+** di pojok kanan bawah.
+### 1. Menambah & Mengelola Jadwal / Habit
+- Buka aplikasi dan gunakan tombol kotak (*Flat Floating Action Button*) di pojok layar.
 - Masukkan judul, deskripsi, tanggal, dan waktu kegiatan.
-- Aktifkan **Alarm** jika Anda ingin menerima notifikasi saat waktu kegiatan tiba.
-- Pilih **Pengingat Pra-Kegiatan** (10/15/30 menit) jika Anda ingin diingatkan sebelum waktu kegiatan dimulai.
-- Ketuk **Simpan** dan Anda akan diarahkan kembali ke Dashboard setelah melihat konfirmasi sukses.
+- Anda dapat mengaktifkan **Alarm** *full-screen* atau **Pengingat Pra-Kegiatan**.
 
-### 2. Mengatur Kegiatan Berulang
-- Pada layar "Tambah/Edit Kegiatan", temukan opsi **Pengulangan**.
-- Pilih frekuensi yang diinginkan:
-    - **Setiap Hari**: Untuk rutinitas harian.
-    - **Setiap Minggu**: Mengulang pada hari yang sama setiap minggu.
-    - **Setiap Bulan**: Mengulang pada tanggal yang sama setiap bulan.
+### 2. Membangun Keseimbangan Hidup
+- Kunjungi tab **Life Spheres** untuk melihat visualisasi distribusi tugas yang telah Anda capai.
+- Setiap kali Anda menyelesaikan *Task* atau *Habit*, matriks pada *Sphere* terkait akan bertambah secara dinamis.
 
 ### 3. Berbagi Jadwal (QR Sharing)
-- Buka tab **Profil** di menu navigasi bawah.
-- Di sana, Anda akan melihat kode QR yang berisi jadwal Anda untuk **hari ini**.
-- Minta teman Anda untuk membuka tab **Profil** mereka dan mengetuk tombol **Scan & Adopt Jadwal**.
-- Setelah menscan kode Anda, mereka dapat meninjau dan mengimpor jadwal Anda ke daftar mereka sendiri.
+- Buka tab **Profil** di menu navigasi.
+- Tampilkan kode QR jadwal Anda agar dapat dipindai oleh perangkat teman untuk diimpor secara instan.
 
 ### 4. Menavigasi Tampilan
-- **Dashboard**: Melihat ringkasan kegiatan hari ini dan kegiatan mendatangkan terdekat.
-- **Kalender**: Melihat jadwal dalam format kalender mingguan/bulanan.
-- **Profil**: Mengelola identitas dan berbagi jadwal.
+- **Dashboard**: Melihat ringkasan kegiatan hari ini, jadwal tidur, indikator progres, dan pesan khusus dari AI.
+- **Life Spheres**: Melihat grafik keseimbangan hidup.
+- **Kalender**: Memantau jadwal dalam format kalender mingguan/bulanan.
 
 ## 🚀 Teknologi yang Digunakan
 
 -   **Framework**: Flutter (Dart)
 -   **State Management**: `flutter_riverpod`
--   **Database**: SQLite (`sqflite`) untuk penyimpanan luring permanen.
+-   **Database & Offline Queue**: SQLite (`sqflite`) dengan sinkronisasi `connectivity_plus`
+-   **AI Integration**: `google_generative_ai`
 -   **Notifications**: `flutter_local_notifications`
--   **UI/Typography**: `google_fonts` (Plus Jakarta Sans) & Custom Design System.
+-   **UI/Typography**: `google_fonts` (Plus Jakarta Sans) & *Custom 2D Flat Design System*.
 -   **Utilitas QR**: `mobile_scanner` & `qr_flutter`.
 
 ## 🛠️ Persiapan & Instalasi
@@ -75,11 +68,11 @@ Aplikasi ini dirancang dengan memprioritaskan prinsip **usabilitas ISO 9241** da
 
 ## 📱 Struktur Project
 
--   `lib/models/`: Definisi model data (`Activity`, `UserProfile`).
--   `lib/services/`: Logika sistem (`DatabaseService`, `NotificationService`).
--   `lib/providers/`: State management & business logic (`ActivityProvider`, `UserProvider`).
--   `lib/screens/`: Layar aplikasi (Dashboard, Calendar, Editor, Profile, Scanner).
--   `lib/theme/`: Sistem warna, tipografi, dan tema aplikasi.
+-   `lib/models/`: Definisi entitas (`Activity`, `Habit`, `Sphere`, `Task`, `SleepSchedule`).
+-   `lib/services/`: Logika sistem inti (`DatabaseService`, `SyncService`, `AIEngine`, `AlarmService`).
+-   `lib/providers/`: *State management* (`activityProvider`, `gamificationProvider`, `sphereProvider`).
+-   `lib/screens/`: Antarmuka halaman utama (Dashboard, Life Spheres, Kalender, dsb).
+-   `lib/widgets/`: Komponen UI modular bergaya *2D Flat* (`success_modal.dart`, `habit_card.dart`, dll).
 
 ---
-Dikembangkan dengan ❤️ untuk membantu Anda menguasai waktu.
+Dikembangkan dengan ❤️ untuk membantu Anda menguasai waktu dengan cara yang estetis dan interaktif.

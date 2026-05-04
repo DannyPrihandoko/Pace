@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../providers/activity_provider.dart';
 import '../theme/colors.dart';
 import 'qr_scanner_screen.dart';
+import '../widgets/qr_container.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -103,47 +104,11 @@ class ProfileScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 48),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Bagikan Jadwal Hari Ini',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                    Text(
-                    'Minta teman untuk scan kode ini',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 24),
-                  QrImageView(
-                    data: shareJson,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                    eyeStyle: const QrEyeStyle(
-                      eyeShape: QrEyeShape.circle,
-                      color: AppColors.textDark,
-                    ),
-                    dataModuleStyle: const QrDataModuleStyle(
-                      dataModuleShape: QrDataModuleShape.circle,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ],
-              ),
+            QrContainer(
+              data: shareJson,
+              title: 'Bagikan Jadwal Hari Ini',
+              subtitle: 'Minta teman untuk scan kode ini',
+              size: 180,
             ),
             const SizedBox(height: 32),
             SizedBox(

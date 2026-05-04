@@ -39,4 +39,11 @@ class AppColors {
 
   static const List<Color> mainGradient = [Color(0xFF4F46E5), Color(0xFF7C3AED)]; 
   static const List<Color> accentGradient = [Color(0xFF0D9488), Color(0xFF0284C7)]; 
+
+  /// Returns either [textDark] or [white] depending on the [backgroundColor] brightness.
+  static Color getContrastColor(Color backgroundColor) {
+    // Standard brightness calculation (YIQ)
+    double brightness = (backgroundColor.red * 299 + backgroundColor.green * 587 + backgroundColor.blue * 114) / 1000;
+    return brightness >= 128 ? textDark : white;
+  }
 }

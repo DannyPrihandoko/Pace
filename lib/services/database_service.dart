@@ -22,7 +22,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -44,20 +44,17 @@ class DatabaseService {
     if (oldVersion < 6) {
       await db.execute('ALTER TABLE activities ADD COLUMN snoozeMinutes INTEGER DEFAULT 5');
     }
-    if (oldVersion < 7) {
-      await db.execute('''
-        CREATE TABLE sync_queue (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          operation TEXT NOT NULL,
-          entity TEXT NOT NULL,
-          entity_id INTEGER NOT NULL,
-          payload TEXT,
-          created_at TEXT NOT NULL,
-          status TEXT DEFAULT 'pending'
-        )
-      ''');
+      if (oldVersion < 8) {
+        await db.execute('''
+          CREATE TABLE moods (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            score INTEGER NOT NULL,
+            date TEXT NOT NULL UNIQUE,
+            comment TEXT
+          )
+        ''');
+      }
     }
-  }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
@@ -84,6 +81,14 @@ class DatabaseService {
         payload TEXT,
         created_at TEXT NOT NULL,
         status TEXT DEFAULT 'pending'
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE moods (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        score INTEGER NOT NULL,
+        date TEXT NOT NULL UNIQUE,
+        comment TEXT
       )
     ''');
     await _createUsersTable(db);
@@ -162,6 +167,23 @@ class DatabaseService {
       });
       return result;
     });
+  }
+
+  // Mood Methods
+  Future<int> saveMood(Map<String, dynamic> mood) async {
+    final db = await instance.database;
+    return await db.insert('moods', mood, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<Map<String, dynamic>?> getMoodByDate(String date) async {
+    final db = await instance.database;
+    final result = await db.query('moods', where: 'date = ?', whereArgs: [date]);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllMoods() async {
+    final db = await instance.database;
+    return await db.query('moods', orderBy: 'date DESC');
   }
 
   Future<int> deleteActivity(int id) async {

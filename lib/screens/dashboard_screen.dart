@@ -7,6 +7,8 @@ import '../models/activity.dart';
 import '../widgets/schedule_item_card.dart';
 import 'edit_activity_screen.dart';
 import 'ai_chat_screen.dart';
+import '../widgets/mood_card.dart';
+import '../providers/mood_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -40,6 +42,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> _onRefresh() async {
     await ref.read(activityProvider.notifier).loadActivities();
+    await ref.read(moodProvider.notifier).loadTodayMood();
   }
 
   @override
@@ -180,6 +183,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ],
                     ),
                   ),
+                ),
+              ),
+
+              // Mood Question
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  child: MoodCard(),
                 ),
               ),
 

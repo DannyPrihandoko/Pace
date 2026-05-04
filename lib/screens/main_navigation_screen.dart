@@ -3,6 +3,7 @@ import '../theme/colors.dart';
 import 'dashboard_screen.dart';
 import 'calendar_screen.dart';
 import 'profile_screen.dart';
+import 'diary_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -17,6 +18,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const CalendarScreen(),
+    const DiaryScreen(),
     const ProfileScreen(),
   ];
 
@@ -63,6 +65,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 icon: Icon(Icons.calendar_month_outlined, color: AppColors.textMuted),
                 selectedIcon: Icon(Icons.calendar_month_rounded, color: AppColors.primary),
                 label: 'Kalender',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.book_outlined, color: AppColors.textMuted),
+                selectedIcon: Icon(Icons.book_rounded, color: AppColors.primary),
+                label: 'Diary',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline_rounded, color: AppColors.textMuted),

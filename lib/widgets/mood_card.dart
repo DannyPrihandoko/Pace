@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/mood_provider.dart';
+import '../theme/colors.dart';
 
 class MoodCard extends ConsumerWidget {
   const MoodCard({super.key});
@@ -9,121 +10,116 @@ class MoodCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayMood = ref.watch(moodProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    const black = Colors.black;
-    const bgWhite = Colors.white;
-    const pastelPink = Color(0xFFFBCFE8); // Pink 200
-    const pastelYellow = Color(0xFFFEF08A);
-
     if (todayMood != null) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: pastelPink,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: black, width: 3.0),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: bgWhite,
-                border: Border.all(color: black, width: 2.0),
-                borderRadius: BorderRadius.circular(6),
+      return Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  _getMoodEmoji(todayMood.score),
+                  style: const TextStyle(fontSize: 24),
+                ),
               ),
-              child: Text(
-                _getMoodEmoji(todayMood.score),
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'MOOD KAMU HARI INI',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                      letterSpacing: 2.0,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MOOD KAMU HARI INI',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Kamu merasa ${_getMoodText(todayMood.score)}!',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Kamu merasa ${_getMoodText(todayMood.score)}!',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: black, size: 20),
-              onPressed: () {
-                // To allow changing, we can just clear the state in the provider
-                // but the provider's saveMood handles replacement (UNIQUE date).
-                // For UI simplicity, we can just set state to null to show the selector again.
-                ref.read(moodProvider.notifier).clearState();
-              },
-            ),
-          ],
+              IconButton(
+                icon: Icon(
+                  Icons.edit_outlined, 
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted, 
+                  size: 20
+                ),
+                onPressed: () {
+                  ref.read(moodProvider.notifier).clearState();
+                },
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: pastelYellow,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: black, width: 3.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'BAGAIMANA MOODMU HARI INI?',
-            style: GoogleFonts.plusJakartaSans(
-              color: black,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
-              letterSpacing: 2.0,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'BAGAIMANA MOODMU HARI INI?',
+              style: GoogleFonts.plusJakartaSans(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
+                letterSpacing: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (index) {
-              final score = index + 1;
-              return GestureDetector(
-                onTap: () {
-                  ref.read(moodProvider.notifier).saveMood(score);
-                },
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: bgWhite,
-                    border: Border.all(color: black, width: 2.0),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(
-                    child: Text(
-                      _getMoodEmoji(score),
-                      style: const TextStyle(fontSize: 24),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(5, (index) {
+                final score = index + 1;
+                return GestureDetector(
+                  onTap: () {
+                    ref.read(moodProvider.notifier).saveMood(score);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkBackground : AppColors.background,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorderColor : AppColors.borderColor,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _getMoodEmoji(score),
+                        style: const TextStyle(fontSize: 24),
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ),
-        ],
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -150,3 +146,4 @@ class MoodCard extends ConsumerWidget {
     }
   }
 }
+

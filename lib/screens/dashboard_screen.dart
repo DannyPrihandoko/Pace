@@ -65,33 +65,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ),
     );
 
-    // 2D Flat Color Palette
-    const black = Colors.black;
-    const accentBlue = Color(0xFF3B82F6);
-    const pastelYellow = Color(0xFFFEF08A);
-    const pastelGreen = Color(0xFFD1FAE5);
-    const bgWhite = Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: bgWhite,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _onRefresh,
-          color: black,
-          backgroundColor: pastelYellow,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             slivers: [
-              // 1. Combined Header & AI Quote (Big Solid Contrast Box)
+              // 1. Modern Header & AI Quote
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 16.0),
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: accentBlue,
-                      borderRadius: BorderRadius.circular(8), // Sharp corners
-                      border: Border.all(color: black, width: 3.0), // Hard borders
+                      gradient: const LinearGradient(
+                        colors: AppColors.mainGradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,8 +108,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   _getGreeting().toUpperCase(),
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    color: black,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.white.withOpacity(0.8),
                                     letterSpacing: 2.0,
                                   ),
                                 ),
@@ -115,43 +117,42 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 Text(
                                   'Siap Beraksi?',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 24,
+                                    fontSize: 28,
                                     fontWeight: FontWeight.w900,
-                                    color: bgWhite,
+                                    color: AppColors.white,
+                                    letterSpacing: -0.5,
                                   ),
                                 ),
                               ],
                             ),
-                            // AI Chat Button Flat
+                            // AI Chat Button
                             Container(
                               decoration: BoxDecoration(
-                                color: pastelYellow,
-                                border: Border.all(color: black, width: 2.0),
-                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: IconButton(
                                 onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => const AiChatScreen()),
                                 ),
-                                icon: const Icon(Icons.auto_awesome, color: black),
+                                icon: const Icon(Icons.auto_awesome_rounded, color: AppColors.white),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // Quote Section inside the Header
+                        // Quote Section
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: bgWhite,
-                            border: Border.all(color: black, width: 2.0),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.format_quote_rounded, color: black, size: 28),
+                              const Icon(Icons.format_quote_rounded, color: AppColors.white, size: 24),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -160,9 +161,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     Text(
                                       'AI Insight',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                        color: black,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.white.withOpacity(0.7),
+                                        letterSpacing: 1.0,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -170,8 +172,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       _getDailyQuote(),
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: black.withOpacity(0.8),
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.white,
+                                        height: 1.4,
                                       ),
                                     ),
                                   ],
@@ -186,7 +189,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
 
-              // Mood Question
+              // Mood Card
               const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -194,73 +197,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
 
-              // 2. Progress Bar
+              // 2. Progress Bar Card
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: pastelYellow,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: black, width: 3.0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Progress Hari Ini',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: black,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Progress Hari Ini',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: bgWhite,
-                                border: Border.all(color: black, width: 2.0),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
+                              Text(
                                 '$completedActivities/$totalActivities Selesai',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w900,
-                                  color: black,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // 2D Flat Progress Bar Implementation
-                        Container(
-                          height: 20,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: bgWhite,
-                            border: Border.all(color: black, width: 2.0),
-                            borderRadius: BorderRadius.circular(4),
+                            ],
                           ),
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(
-                            widthFactor: progress,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: black, // Solid fill
-                                border: progress > 0 && progress < 1.0 
-                                    ? const Border(right: BorderSide(color: black, width: 2.0)) 
-                                    : null,
-                              ),
+                          const SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 12,
+                              backgroundColor: isDark ? AppColors.darkBorderColor : AppColors.borderColor.withOpacity(0.5),
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -281,20 +260,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: black,
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppColors.accent.withOpacity(0.1),
+                          shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.star, color: bgWhite, size: 16),
+                        child: const Icon(Icons.star_rounded, color: AppColors.accent, size: 20),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Text(
                         'Tugas Prioritas',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: black,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -302,7 +280,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
 
-              // 4. Priority Tasks List or Empty State Placeholder
+              // 4. Priority Tasks List or Empty State
               if (priorityTasks.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -310,52 +288,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200], // Neutral background for empty
-                        border: Border.all(color: black, width: 3.0),
-                        borderRadius: BorderRadius.circular(8),
+                        color: isDark ? AppColors.darkCard.withOpacity(0.5) : AppColors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorderColor : AppColors.borderColor,
+                          width: 1,
+                        ),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Custom 2D Flat Illustration Placeholder
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: pastelGreen,
-                              border: Border.all(color: black, width: 3.0),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Positioned(
-                                  top: 16,
-                                  child: Container(width: 40, height: 4, color: black),
-                                ),
-                                Positioned(
-                                  top: 28,
-                                  child: Container(width: 40, height: 4, color: black),
-                                ),
-                                Positioned(
-                                  top: 40,
-                                  child: Container(width: 20, height: 4, color: black),
-                                ),
-                                const Positioned(
-                                  bottom: 12,
-                                  right: 12,
-                                  child: Icon(Icons.check_box, color: black, size: 28),
-                                ),
-                              ],
-                            ),
+                          Icon(
+                            Icons.check_circle_outline_rounded,
+                            size: 64,
+                            color: AppColors.success.withOpacity(0.5),
                           ),
                           const SizedBox(height: 24),
                           Text(
                             'KOSONG!',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              color: black,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -364,8 +317,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: black.withOpacity(0.7),
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
                             ),
                           ),
                         ],
@@ -379,8 +332,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        // Assuming ScheduleItemCard supports the flat aesthetic or will be refactored too
-                        return ScheduleItemCard(activity: priorityTasks[index]);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: ScheduleItemCard(activity: priorityTasks[index]),
+                        );
                       },
                       childCount: priorityTasks.length,
                     ),
@@ -393,105 +348,79 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       ),
       
-      // 5. Flat Floating Action Button
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const EditActivityScreen()),
           );
         },
-        backgroundColor: pastelYellow,
-        elevation: 0, // No shadow
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4), // Flat box shape
-          side: const BorderSide(color: black, width: 3.0), // Hard border
-        ),
-        child: const Icon(Icons.add, color: black, size: 32),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        elevation: 4,
+        label: const Text('Tambah'),
+        icon: const Icon(Icons.add_rounded),
       ),
     );
   }
 
   Widget _buildSleepCard(BuildContext context, Activity sleepActivity) {
-    const black = Colors.black;
-    const pastelBlue = Color(0xFFBFDBFE); // Blue 200
-    const bgWhite = Colors.white;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: pastelBlue,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: black, width: 3.0),
-      ),
-      child: Stack(
-        children: [
-          // Flat geometric decoration replacing the old soft gradient circle
-          Positioned(
-            right: -10,
-            top: -10,
-            child: Container(
-              width: 80,
-              height: 80,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: bgWhite.withOpacity(0.4),
-                border: Border.all(color: black, width: 2.0),
-                shape: BoxShape.circle, // Sharp circled line
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.nights_stay_rounded, color: AppColors.info, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'JADWAL TIDUR',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    sleepActivity.title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    sleepActivity.time.format(context),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: bgWhite,
-                  border: Border.all(color: black, width: 2.0),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(Icons.nights_stay, color: black, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'JADWAL TIDUR',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      sleepActivity.title,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 20,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sleepActivity.time.format(context),
-                      style: GoogleFonts.plusJakartaSans(
-                        color: black.withOpacity(0.8),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+

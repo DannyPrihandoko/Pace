@@ -10,6 +10,7 @@ class Activity {
   final String? recurrenceRule;
   final String category;
   final int preAlertMinutes;
+  final int snoozeMinutes;
   final int duration; // In minutes
   final int reminderOffset; // In minutes
   final bool isCompleted;
@@ -30,8 +31,6 @@ class Activity {
     this.isCompleted = false,
   });
 
-  final int snoozeMinutes;
-
   DateTime get startTime {
     final dateParts = date.split('-');
     if (dateParts.length == 3) {
@@ -47,8 +46,7 @@ class Activity {
   DateTime get endTime => startTime.add(Duration(minutes: duration));
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'title': title,
       'description': description,
       'hour': time.hour,
@@ -63,26 +61,33 @@ class Activity {
       'reminderOffset': reminderOffset,
       'isCompleted': isCompleted ? 1 : 0,
     };
+    // Only include id for UPDATE; INSERT uses AUTOINCREMENT
+    if (id != null) map['id'] = id;
+    return map;
   }
 
   factory Activity.fromMap(Map<String, dynamic> map) {
     return Activity(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
-      time: TimeOfDay(hour: map['hour'], minute: map['minute']),
+      id: map['id'] as int?,
+      title: map['title'] as String,
+      description: (map['description'] as String?) ?? '',
+      time: TimeOfDay(
+        hour: map['hour'] as int,
+        minute: map['minute'] as int,
+      ),
       isAlarmEnabled: map['isAlarmEnabled'] == 1,
-      date: map['date'],
+      date: map['date'] as String,
       recurrenceRule: map['recurrenceRule'] as String?,
-      category: map['category'] ?? 'Umum',
-      preAlertMinutes: map['preAlertMinutes'] ?? 0,
-      snoozeMinutes: map['snoozeMinutes'] ?? 5,
-      duration: map['duration'] ?? 60,
-      reminderOffset: map['reminderOffset'] ?? 0,
+      category: (map['category'] as String?) ?? 'Umum',
+      preAlertMinutes: (map['preAlertMinutes'] as int?) ?? 0,
+      snoozeMinutes: (map['snoozeMinutes'] as int?) ?? 5,
+      duration: (map['duration'] as int?) ?? 60,
+      reminderOffset: (map['reminderOffset'] as int?) ?? 0,
       isCompleted: map['isCompleted'] == 1,
     );
   }
 
+  /// All fields are individually overridable.
   Activity copyWith({
     int? id,
     String? title,
@@ -92,6 +97,8 @@ class Activity {
     String? date,
     String? recurrenceRule,
     String? category,
+    int? preAlertMinutes,
+    int? snoozeMinutes,
     int? duration,
     int? reminderOffset,
     bool? isCompleted,
@@ -114,30 +121,32 @@ class Activity {
   }
 
   bool occursOn(DateTime targetDate) {
-    final targetStr = "${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}";
-    
+    final targetStr =
+        '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
+
     if (date == targetStr) return true;
     if (recurrenceRule == null) return false;
-    
+
     final start = DateTime.parse(date);
-    final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final targetDateOnly =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
     final startDateOnly = DateTime(start.year, start.month, start.day);
-    
+
     if (targetDateOnly.isBefore(startDateOnly)) return false;
 
     if (recurrenceRule!.contains('FREQ=DAILY')) return true;
-    
+
     if (recurrenceRule!.contains('FREQ=WEEKLY')) {
-       final dayNames = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
-       final day = dayNames[targetDate.weekday - 1];
-       return recurrenceRule!.contains('BYDAY=$day');
+      final dayNames = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+      final day = dayNames[targetDate.weekday - 1];
+      return recurrenceRule!.contains('BYDAY=$day');
     }
-    
+
     if (recurrenceRule!.contains('FREQ=MONTHLY')) {
-       return recurrenceRule!.contains('BYMONTHDAY=${targetDate.day};') || 
-              recurrenceRule!.contains('BYMONTHDAY=${targetDate.day}');
+      return recurrenceRule!.contains('BYMONTHDAY=${targetDate.day};') ||
+          recurrenceRule!.contains('BYMONTHDAY=${targetDate.day}');
     }
-    
+
     return false;
   }
 

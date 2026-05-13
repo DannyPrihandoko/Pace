@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/success_modal.dart';
-import '../utils/error_codes.dart';
 import '../utils/storage_utils.dart';
 import '../providers/habit_provider.dart';
 import '../widgets/habit_card.dart';
@@ -14,22 +13,11 @@ class HabitTrackerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final habits = ref.watch(habitProvider);
-    const navyBlue = Color(0xFF1E3A8A);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          'Habit Tracker',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w900,
-            color: navyBlue,
-            letterSpacing: -0.5,
-          ),
-        ),
+        title: const Text('Habit Tracker'),
         centerTitle: false,
-        elevation: 0,
-        backgroundColor: Colors.white,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,10 +43,11 @@ class HabitTrackerScreen extends ConsumerWidget {
                   onTap: () async {
                     // Pre-check Storage
                     if (!(await StorageUtils.hasEnoughSpace())) {
+                      // ignore: use_build_context_synchronously
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('[ERR-DB-04] Penyimpanan penuh. Gagal memperbarui habit.'),
-                          backgroundColor: Colors.redAccent,
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -69,24 +58,36 @@ class HabitTrackerScreen extends ConsumerWidget {
                       if (habit.type == HabitGoalType.boolean) {
                         ref.read(habitProvider.notifier).toggleHabit(habit.id);
                         if (!habit.isCompleted) {
-                          SuccessModal.show(context, title: 'Habit Selesai!', message: 'Bagus! Kamu telah menyelesaikan "${habit.title}".')
-                              .then((_) => Navigator.pop(context));
+                          // ignore: use_build_context_synchronously
+                          if (context.mounted) {
+                            SuccessModal.show(context,
+                              title: 'Habit Selesai!',
+                              message: 'Bagus! Kamu telah menyelesaikan "${habit.title}".',
+                            );
+                          }
                         }
                       } else {
                         ref.read(habitProvider.notifier).incrementProgress(habit.id);
                         if (habit.currentProgress + 1 >= habit.targetProgress) {
-                          SuccessModal.show(context, title: 'Target Tercapai!', message: 'Hebat! Target "${habit.title}" hari ini sudah tercapai.')
-                              .then((_) => Navigator.pop(context));
+                          // ignore: use_build_context_synchronously
+                          if (context.mounted) {
+                            SuccessModal.show(context,
+                              title: 'Target Tercapai!',
+                              message: 'Hebat! Target "${habit.title}" hari ini sudah tercapai.',
+                            );
+                          }
                         }
                       }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Gagal memperbarui habit: $e'),
-                          backgroundColor: Colors.redAccent,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                      // ignore: use_build_context_synchronously
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Gagal memperbarui habit: $e'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
                     }
                   },
                 );
@@ -96,14 +97,84 @@ class HabitTrackerScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: navyBlue,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text(
-          'Tambah Habit',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        onPressed: () => _showAddHabitSheet(context, ref),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Tambah Habit'),
+      ),
+    );
+  }
+
+  void _showAddHabitSheet(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController();
+    HabitGoalType selectedType = HabitGoalType.boolean;
+    double target = 1;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24, right: 24, top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tambah Habit Baru',
+                  style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: titleController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Habit',
+                  hintText: 'Contoh: Minum 8 gelas air',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Tipe', style: Theme.of(ctx).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              SegmentedButton<HabitGoalType>(
+                segments: const [
+                  ButtonSegment(value: HabitGoalType.boolean, label: Text('Ya/Tidak')),
+                  ButtonSegment(value: HabitGoalType.progress, label: Text('Progress')),
+                ],
+                selected: {selectedType},
+                onSelectionChanged: (s) => setSheetState(() => selectedType = s.first),
+              ),
+              if (selectedType == HabitGoalType.progress) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Target'),
+                  onChanged: (v) => target = double.tryParse(v) ?? 1,
+                ),
+              ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final title = titleController.text.trim();
+                    if (title.isEmpty) return;
+                    ref.read(habitProvider.notifier).addHabit(
+                      Habit(
+                        title: title,
+                        type: selectedType,
+                        targetProgress: selectedType == HabitGoalType.progress ? target : 1,
+                      ),
+                    );
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

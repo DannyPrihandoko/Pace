@@ -8,6 +8,8 @@ class Habit {
   final double targetProgress;
   final int streak;
   final bool isCompleted;
+  final String category;
+
   /// Date this habit record applies to (YYYY-MM-DD).
   /// One row per habit definition; `date` tracks the last-reset day.
   final String date;
@@ -20,6 +22,7 @@ class Habit {
     this.targetProgress = 1,
     this.streak = 0,
     this.isCompleted = false,
+    this.category = 'Umum',
     String? date,
   }) : date = date ?? _today();
 
@@ -36,6 +39,7 @@ class Habit {
       'targetProgress': targetProgress,
       'streak': streak,
       'isCompleted': isCompleted ? 1 : 0,
+      'category': category,
       'date': date,
     };
     if (id != null) map['id'] = id;
@@ -54,6 +58,7 @@ class Habit {
       targetProgress: (map['targetProgress'] as num).toDouble(),
       streak: (map['streak'] as int?) ?? 0,
       isCompleted: map['isCompleted'] == 1,
+      category: (map['category'] as String?) ?? 'Umum',
       date: (map['date'] as String?) ?? _today(),
     );
   }
@@ -66,6 +71,7 @@ class Habit {
     double? targetProgress,
     int? streak,
     bool? isCompleted,
+    String? category,
     String? date,
   }) {
     return Habit(
@@ -76,6 +82,7 @@ class Habit {
       targetProgress: targetProgress ?? this.targetProgress,
       streak: streak ?? this.streak,
       isCompleted: isCompleted ?? this.isCompleted,
+      category: category ?? this.category,
       date: date ?? this.date,
     );
   }

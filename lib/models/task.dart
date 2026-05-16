@@ -1,8 +1,27 @@
+/// Tingkat prioritas untuk sebuah task.
+enum TaskPriority { low, medium, high }
+
+extension TaskPriorityX on TaskPriority {
+  String get label {
+    switch (this) {
+      case TaskPriority.low:
+        return 'Low';
+      case TaskPriority.medium:
+        return 'Medium';
+      case TaskPriority.high:
+        return 'High';
+    }
+  }
+}
+
 class Task {
   final int? id;
   final String title;
   final String time; // Display string e.g. "09:00 AM"
   final bool isCompleted;
+  final String category;
+  final TaskPriority priority;
+
   /// Date this task belongs to (YYYY-MM-DD).
   final String date;
 
@@ -11,6 +30,8 @@ class Task {
     required this.title,
     required this.time,
     this.isCompleted = false,
+    this.category = 'Umum',
+    this.priority = TaskPriority.low,
     String? date,
   }) : date = date ?? _today();
 
@@ -24,6 +45,8 @@ class Task {
       'title': title,
       'time': time,
       'isCompleted': isCompleted ? 1 : 0,
+      'category': category,
+      'priority': priority.name,
       'date': date,
     };
     if (id != null) map['id'] = id;
@@ -36,6 +59,11 @@ class Task {
       title: map['title'] as String,
       time: map['time'] as String,
       isCompleted: map['isCompleted'] == 1,
+      category: (map['category'] as String?) ?? 'Umum',
+      priority: TaskPriority.values.firstWhere(
+        (e) => e.name == (map['priority'] as String?),
+        orElse: () => TaskPriority.low,
+      ),
       date: (map['date'] as String?) ?? _today(),
     );
   }
@@ -45,6 +73,8 @@ class Task {
     String? title,
     String? time,
     bool? isCompleted,
+    String? category,
+    TaskPriority? priority,
     String? date,
   }) {
     return Task(
@@ -52,6 +82,8 @@ class Task {
       title: title ?? this.title,
       time: time ?? this.time,
       isCompleted: isCompleted ?? this.isCompleted,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
       date: date ?? this.date,
     );
   }

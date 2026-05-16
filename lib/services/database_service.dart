@@ -17,7 +17,8 @@ import '../models/task.dart';
 ///   v8 – moods table
 ///   v9 – activities.duration, activities.reminderOffset, activities.isCompleted
 ///         + habits table + tasks table
-const int _kDbVersion = 9;
+///   v10 – tasks.category, tasks.priority, habits.category
+const int _kDbVersion = 10;
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -104,6 +105,7 @@ class DatabaseService {
       targetProgress   REAL    DEFAULT 1,
       streak           INTEGER DEFAULT 0,
       isCompleted      INTEGER DEFAULT 0,
+      category         TEXT    DEFAULT "Umum",
       date             TEXT    NOT NULL
     )
   ''';
@@ -114,6 +116,8 @@ class DatabaseService {
       title        TEXT    NOT NULL,
       time         TEXT    NOT NULL DEFAULT "",
       isCompleted  INTEGER DEFAULT 0,
+      category     TEXT    DEFAULT "Umum",
+      priority     TEXT    DEFAULT "low",
       date         TEXT    NOT NULL
     )
   ''';
@@ -165,6 +169,13 @@ class DatabaseService {
       // New tables
       await _safeCreateTable(db, 'habits', _habitsDDL);
       await _safeCreateTable(db, 'tasks', _tasksDDL);
+    }
+    if (oldVersion < 10) {
+      // tasks: add category + priority
+      await _safeAlter(db, 'ALTER TABLE tasks ADD COLUMN category TEXT DEFAULT "Umum"');
+      await _safeAlter(db, 'ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT "low"');
+      // habits: add category
+      await _safeAlter(db, 'ALTER TABLE habits ADD COLUMN category TEXT DEFAULT "Umum"');
     }
   }
 

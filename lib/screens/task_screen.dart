@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/success_modal.dart';
 import '../providers/task_provider.dart';
 import '../widgets/task_item_card.dart';
+import '../widgets/add_task_sheet.dart';
 
 class TaskScreen extends ConsumerWidget {
   const TaskScreen({super.key});
@@ -85,69 +86,8 @@ class TaskScreen extends ConsumerWidget {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddTaskDialog(context, ref),
+        onPressed: () => showAddTaskSheet(context),
         child: const Icon(Icons.add_rounded),
-      ),
-    );
-  }
-
-  void _showAddTaskDialog(BuildContext context, WidgetRef ref) {
-    final titleCtrl = TextEditingController();
-    final timeCtrl = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24, right: 24, top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tambah Tugas Baru',
-                style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleCtrl,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Nama Tugas',
-                hintText: 'Contoh: Review dokumen',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: timeCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Waktu (opsional)',
-                hintText: 'Contoh: 09:00 AM',
-                prefixIcon: Icon(Icons.access_time_rounded),
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  final title = titleCtrl.text.trim();
-                  if (title.isEmpty) return;
-                  ref.read(taskProvider.notifier).addTask(
-                    title,
-                    timeCtrl.text.trim().isEmpty ? '--:--' : timeCtrl.text.trim(),
-                  );
-                  Navigator.pop(ctx);
-                },
-                child: const Text('Simpan'),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

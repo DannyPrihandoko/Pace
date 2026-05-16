@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
+// TaskPriority is defined in task.dart (already imported above)
 
 final taskProvider =
     StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
@@ -27,9 +28,21 @@ class TaskNotifier extends StateNotifier<List<Task>> {
     }
   }
 
-  // ── Add ──────────────────────────────────────────────────────────────────
-  Future<void> addTask(String title, String time, {String? date}) async {
-    final task = Task(title: title, time: time, date: date);
+  // ── Add ──────────────────────────────────────────────────────────────────────────
+  Future<void> addTask(
+    String title,
+    String time, {
+    String? date,
+    String category = 'Umum',
+    TaskPriority priority = TaskPriority.low,
+  }) async {
+    final task = Task(
+      title: title,
+      time: time,
+      date: date,
+      category: category,
+      priority: priority,
+    );
     if (kIsWeb) {
       state = [...state, task.copyWith(id: state.length + 1)];
       return;

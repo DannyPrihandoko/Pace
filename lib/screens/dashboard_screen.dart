@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/colors.dart';
+import '../theme/app_colors.dart';
 import '../providers/activity_provider.dart';
+import '../providers/task_provider.dart';
+import '../providers/habit_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/mood_provider.dart';
 import '../models/activity.dart';
 import '../widgets/schedule_item_card.dart';
+import '../widgets/task_item_card.dart';
+import '../widgets/habit_card.dart';
+import '../widgets/mood_card.dart';
 import 'edit_activity_screen.dart';
 import 'ai_chat_screen.dart';
-import '../widgets/mood_card.dart';
-import '../providers/mood_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -24,60 +29,83 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     "Konsistensi adalah kunci dari kesuksesan.",
     "Jadilah lebih baik 1% setiap harinya.",
     "Jangan menunggu sempurna untuk mulai, mulailah untuk menjadi sempurna.",
-    "Kesuksesan adalah kumpulan usaha kecil yang diulang setiap hari."
+    "Kesuksesan adalah kumpulan usaha kecil yang diulang setiap hari.",
   ];
 
-  String _getDailyQuote() {
-    final day = DateTime.now().day;
-    return _quotes[day % _quotes.length];
-  }
+  String _getDailyQuote() => _quotes[DateTime.now().day % _quotes.length];
 
-  String _getGreeting() {
+  /// Sapaan dinamis berdasarkan jam + ikon emoji.
+  ({String text, String emoji}) _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Selamat Pagi';
-    if (hour < 15) return 'Selamat Siang';
-    if (hour < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
+    if (hour < 12) return (text: 'Selamat Pagi', emoji: '☀️');
+    if (hour < 15) return (text: 'Selamat Siang', emoji: '🌤️');
+    if (hour < 18) return (text: 'Selamat Sore', emoji: '🌇');
+    return (text: 'Selamat Malam', emoji: '🌙');
   }
 
   Future<void> _onRefresh() async {
     await ref.read(activityProvider.notifier).loadActivities();
+    await ref.read(taskProvider.notifier).loadTasks();
+    await ref.read(habitProvider.notifier).loadHabits();
     await ref.read(moodProvider.notifier).loadTodayMood();
   }
 
   @override
   Widget build(BuildContext context) {
-    final activities = ref.watch(todayActivitiesProvider);
-    final completedActivities = activities.where((a) => a.isCompleted).length;
-    final totalActivities = activities.length;
-    final progress = totalActivities > 0 ? completedActivities / totalActivities : 0.0;
-    
+    // ── Data dari provider ─────────────────────────────────────────────────
+    final activities   = ref.watch(todayActivitiesProvider);
+    final tasks        = ref.watch(taskProvider);
+    final habits       = ref.watch(habitProvider);
+    final user         = ref.watch(userProvider);
+    final isDark       = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme  = Theme.of(context).colorScheme;
+
+    // Hanya task hari ini
+    final today = DateTime.now();
+    final todayStr =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final todayTasks   = tasks.where((t) => t.date == todayStr).toList();
+    final todayHabits  = habits.where((h) => h.date == todayStr).toList();
+
+    // Progress gabungan (task + habit)
+    final totalItems     = todayTasks.length + todayHabits.length;
+    final completedItems = todayTasks.where((t) => t.isCompleted).length +
+        todayHabits.where((h) => h.isCompleted).length;
+    final progress = totalItems > 0 ? completedItems / totalItems : 0.0;
+
+    // Aktivitas prioritas (belum selesai, maks 3)
     final priorityTasks = activities.where((a) => !a.isCompleted).take(3).toList();
-    
+
     final sleepActivity = activities.firstWhere(
-      (a) => a.title.toLowerCase().contains('tidur') || a.title.toLowerCase().contains('sleep') || a.category == 'Kesehatan',
+      (a) =>
+          a.title.toLowerCase().contains('tidur') ||
+          a.title.toLowerCase().contains('sleep') ||
+          a.category == 'Kesehatan',
       orElse: () => Activity(
         title: 'Waktu Tidur Ideal',
         description: 'Tidur 8 jam sangat baik untuk kesehatan',
         time: const TimeOfDay(hour: 22, minute: 0),
-        date: DateTime.now().toIso8601String().split('T')[0],
+        date: todayStr,
         category: 'Kesehatan',
       ),
     );
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final greeting = _getGreeting();
+    final userName = user?.name ?? 'Kamu';
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _onRefresh,
+          color: AppColors.primary,
           child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics()),
             slivers: [
-              // 1. Modern Header & AI Quote
+              // ── 1. Greeting Header ──────────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 16.0),
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -89,8 +117,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 20,
+                          color: AppColors.primary.withOpacity(0.28),
+                          blurRadius: 24,
                           offset: const Offset(0, 10),
                         ),
                       ],
@@ -98,80 +126,173 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Baris atas: sapaan + tombol AI
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getGreeting().toUpperCase(),
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.white.withOpacity(0.8),
-                                    letterSpacing: 2.0,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Label jam
+                                  Row(
+                                    children: [
+                                      Text(
+                                        greeting.emoji,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        greeting.text.toUpperCase(),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.white.withOpacity(0.75),
+                                          letterSpacing: 1.8,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Siap Beraksi?',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.white,
-                                    letterSpacing: -0.5,
+                                  const SizedBox(height: 6),
+                                  // Nama user
+                                  Text(
+                                    userName,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.white,
+                                      letterSpacing: -0.5,
+                                      height: 1.1,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            // AI Chat Button
+                            // Tombol AI Chat
                             Container(
                               decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(16),
+                                color: AppColors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: IconButton(
                                 onPressed: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const AiChatScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const AiChatScreen()),
                                 ),
-                                icon: const Icon(Icons.auto_awesome_rounded, color: AppColors.white),
+                                icon: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: AppColors.white,
+                                ),
+                                tooltip: 'AI Assistant',
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        // Quote Section
+                        const SizedBox(height: 20),
+
+                        // ── Mini Progress Summary ─────────────────────────
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(18),
+                            color: AppColors.white.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Progress Hari Ini',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white.withOpacity(0.85),
+                                    ),
+                                  ),
+                                  Text(
+                                    totalItems > 0
+                                        ? '$completedItems/$totalItems selesai'
+                                        : 'Belum ada item',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0, end: progress),
+                                  duration: const Duration(milliseconds: 800),
+                                  curve: Curves.easeOut,
+                                  builder: (_, val, __) =>
+                                      LinearProgressIndicator(
+                                    value: val,
+                                    minHeight: 8,
+                                    backgroundColor:
+                                        AppColors.white.withOpacity(0.2),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                            AppColors.white),
+                                  ),
+                                ),
+                              ),
+                              if (totalItems > 0) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  progress >= 1.0
+                                      ? '🎉 Semua selesai! Luar biasa!'
+                                      : '${(progress * 100).toStringAsFixed(0)}% tercapai — terus semangat!',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── AI Quote ──────────────────────────────────────
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.format_quote_rounded, color: AppColors.white, size: 24),
-                              const SizedBox(width: 12),
+                              const Icon(Icons.format_quote_rounded,
+                                  color: AppColors.white, size: 20),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'AI Insight',
+                                      'AI INSIGHT',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         fontWeight: FontWeight.w800,
-                                        color: AppColors.white.withOpacity(0.7),
-                                        letterSpacing: 1.0,
+                                        color: AppColors.white.withOpacity(0.65),
+                                        letterSpacing: 1.2,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 3),
                                     Text(
                                       _getDailyQuote(),
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.white,
                                         height: 1.4,
@@ -189,154 +310,136 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
 
-              // Mood Card
+              // ── Mood Card ───────────────────────────────────────────────
               const SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                   child: MoodCard(),
                 ),
               ),
 
-              // 2. Progress Bar Card
+              // ── 2. Sleep Card ───────────────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Progress Hari Ini',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              Text(
-                                '$completedActivities/$totalActivities Selesai',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 12,
-                              backgroundColor: isDark ? AppColors.darkBorderColor : AppColors.borderColor.withOpacity(0.5),
-                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  child: _buildSleepCard(context, sleepActivity, isDark),
                 ),
               ),
 
-              // 3. Sleep Schedule Card
+              // ── 3. Tugas Hari Ini ───────────────────────────────────────
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                  child: _buildSleepCard(context, sleepActivity),
+                child: _SectionHeader(
+                  icon: Icons.check_circle_outline_rounded,
+                  iconColor: AppColors.primary,
+                  title: 'Tugas Hari Ini',
+                  trailing: todayTasks.isNotEmpty
+                      ? '${todayTasks.where((t) => t.isCompleted).length}/${todayTasks.length}'
+                      : null,
                 ),
               ),
 
-              // Priority Tasks Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20.0, 24.0, 20.0, 16.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.accent.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.star_rounded, color: AppColors.accent, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Tugas Prioritas',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // 4. Priority Tasks List or Empty State
-              if (priorityTasks.isEmpty)
+              if (todayTasks.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard.withOpacity(0.5) : AppColors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: isDark ? AppColors.darkBorderColor : AppColors.borderColor,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 64,
-                            color: AppColors.success.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'KOSONG!',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Semua prioritas sudah selesai. Santai dulu bos!',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _EmptyStateCard(
+                      icon: Icons.task_alt_rounded,
+                      iconColor: AppColors.primary,
+                      title: 'Tidak Ada Tugas',
+                      subtitle:
+                          'Yeay! Semua tugas hari ini sudah selesai.\nWaktunya bersantai! 🎉',
                     ),
                   ),
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: ScheduleItemCard(activity: priorityTasks[index]),
-                        );
-                      },
+                      (ctx, i) => TaskItemCard(
+                        task: todayTasks[i],
+                        onToggle: () => ref
+                            .read(taskProvider.notifier)
+                            .toggleTask(todayTasks[i].id),
+                      ),
+                      childCount: todayTasks.length,
+                    ),
+                  ),
+                ),
+
+              // ── 4. Habit Hari Ini ───────────────────────────────────────
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  icon: Icons.local_fire_department_rounded,
+                  iconColor: AppColors.warning,
+                  title: 'Habit Hari Ini',
+                  trailing: todayHabits.isNotEmpty
+                      ? '${todayHabits.where((h) => h.isCompleted).length}/${todayHabits.length}'
+                      : null,
+                ),
+              ),
+
+              if (todayHabits.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _EmptyStateCard(
+                      icon: Icons.self_improvement_rounded,
+                      iconColor: AppColors.warning,
+                      title: 'Tidak Ada Habit',
+                      subtitle:
+                          'Mulai bangun kebiasaan baik hari ini.\nSatu kebiasaan kecil bisa mengubah segalanya! 💪',
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, i) => HabitCard(
+                        habit: todayHabits[i],
+                        onTap: () => ref
+                            .read(habitProvider.notifier)
+                            .toggleHabit(todayHabits[i].id),
+                      ),
+                      childCount: todayHabits.length,
+                    ),
+                  ),
+                ),
+
+              // ── 5. Aktivitas Prioritas ──────────────────────────────────
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  icon: Icons.star_rounded,
+                  iconColor: AppColors.warning,
+                  title: 'Aktivitas Prioritas',
+                ),
+              ),
+
+              if (priorityTasks.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _EmptyStateCard(
+                      icon: Icons.check_circle_outline_rounded,
+                      iconColor: AppColors.success,
+                      title: 'Semua Beres!',
+                      subtitle:
+                          'Semua prioritas aktivitas sudah selesai.\nSantai dulu, kamu luar biasa! 😎',
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: ScheduleItemCard(activity: priorityTasks[i]),
+                      ),
                       childCount: priorityTasks.length,
                     ),
                   ),
@@ -347,14 +450,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
       ),
-      
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EditActivityScreen()),
-          );
-        },
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EditActivityScreen()),
+        ),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 4,
@@ -364,22 +464,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildSleepCard(BuildContext context, Activity sleepActivity) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+  Widget _buildSleepCard(
+      BuildContext context, Activity sleep, bool isDark) {
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 1,
+      shadowColor: AppColors.info.withOpacity(0.08),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: AppColors.info.withOpacity(0.15),
+          width: 1,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.info.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.nights_stay_rounded, color: AppColors.info, size: 28),
+              child:
+                  const Icon(Icons.nights_stay_rounded, color: AppColors.info, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -389,29 +498,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Text(
                     'JADWAL TIDUR',
                     style: GoogleFonts.plusJakartaSans(
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
                       fontWeight: FontWeight.w800,
-                      fontSize: 11,
+                      fontSize: 10,
                       letterSpacing: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
-                    sleepActivity.title,
+                    sleep.title,
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w800,
-                      fontSize: 18,
+                      fontSize: 17,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    sleepActivity.time.format(context),
+                    sleep.time.format(context),
                     style: GoogleFonts.plusJakartaSans(
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textMuted,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -424,3 +537,137 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Section Header
+// ─────────────────────────────────────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? trailing;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          if (trailing != null)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                trailing!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: iconColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty State Card — cantik & motivatif
+// ─────────────────────────────────────────────────────────────────────────────
+class _EmptyStateCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+
+  const _EmptyStateCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkCard.withOpacity(0.6)
+            : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 40, color: iconColor.withOpacity(0.8)),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
